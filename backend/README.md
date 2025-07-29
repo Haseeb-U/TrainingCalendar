@@ -370,10 +370,4 @@ const response = await fetch('/api/users/change-password', {
 
 4. **Implement loading states** - API calls may take time, show loading indicators to users.
 
-5. **Use environment variables** - Don't hardcode the API base URL. Use environment variables for different environments (development, staging, production).
-
-```javascript
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
-```
-
-6. **Handle network errors gracefully** - Always wrap API calls in try-catch blocks and provide meaningful error messages to users.
+5. **Handle network errors gracefully** - Always wrap API calls in try-catch blocks and provide meaningful error messages to users.
