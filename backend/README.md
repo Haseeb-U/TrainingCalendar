@@ -4,6 +4,7 @@ This document provides step-by-step instructions for frontend developers on how 
 
 ## Table of Contents
 - [Getting Started](#getting-started)
+- [Configuration](#configuration)
 - [Authentication](#authentication)
 - [User Routes](#user-routes)
 - [Error Handling](#error-handling)
@@ -13,7 +14,8 @@ This document provides step-by-step instructions for frontend developers on how 
 
 ### Base URL
 ```
-http://localhost:5000
+Development: http://localhost:5000
+Production: Use relative URLs (/api/...)
 ```
 
 ### Headers Required
@@ -23,6 +25,31 @@ headers: {
   'Content-Type': 'application/json',
   'x-auth-token': 'your-jwt-token-here'
 }
+```
+
+## Configuration
+
+### Recommended Approach
+Use relative URLs for API calls when your frontend and backend are served from the same domain:
+
+```javascript
+// Good - works in all environments
+fetch('/api/users/login')
+
+// Avoid - hardcoded URLs
+fetch('http://localhost:5000/api/users/login')
+```
+
+### For Cross-Domain Setups
+If your frontend and backend are on different domains, use environment variables:
+
+```javascript
+// .env file
+REACT_APP_API_URL=http://localhost:5000
+
+// In your code
+const API_BASE_URL = process.env.REACT_APP_API_URL || '';
+fetch(`${API_BASE_URL}/api/users/login`)
 ```
 
 ## Authentication
@@ -53,7 +80,7 @@ headers: {
 ```javascript
 async function registerUser(name, email, password) {
   try {
-    const response = await fetch('http://localhost:5000/api/users/register', {
+    const response = await fetch('/api/users/register', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -126,7 +153,7 @@ registerUser('John Doe', 'john@example.com', 'password123');
 ```javascript
 async function loginUser(email, password) {
   try {
-    const response = await fetch('http://localhost:5000/api/users/login', {
+    const response = await fetch('/api/users/login', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -204,7 +231,7 @@ async function changePassword(currentPassword, newPassword) {
       return { success: false, error: 'No authentication token found' };
     }
 
-    const response = await fetch('http://localhost:5000/api/users/change-password', {
+    const response = await fetch('/api/users/change-password', {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
@@ -321,6 +348,27 @@ function displayErrors(errors) {
 }
 ```
 
+### API Configuration Utility
+```javascript
+class ApiConfig {
+  static getBaseUrl() {
+    // For cross-domain setups
+    return process.env.REACT_APP_API_URL || '';
+  }
+  
+  static getFullUrl(endpoint) {
+    const baseUrl = this.getBaseUrl();
+    return baseUrl ? `${baseUrl}${endpoint}` : endpoint;
+  }
+}
+
+// Usage for cross-domain
+fetch(ApiConfig.getFullUrl('/api/users/login'))
+
+// Or simply use relative URLs for same-domain
+fetch('/api/users/login')
+```
+
 ### Token Management Utility
 ```javascript
 class AuthManager {
@@ -362,12 +410,16 @@ const response = await fetch('/api/users/change-password', {
 
 ## Notes for Frontend Developers
 
-1. **Always validate input on the frontend** before sending requests to reduce server load and improve user experience.
+1. **Use relative URLs** when possible - they work across all environments without modification.
 
-2. **Store JWT tokens securely** - consider using httpOnly cookies for better security in production.
+2. **Always validate input on the frontend** before sending requests to reduce server load and improve user experience.
 
-3. **Handle token expiration** - tokens expire in 1 hour. Implement automatic refresh or redirect to login.
+3. **Store JWT tokens securely** - consider using httpOnly cookies for better security in production.
 
-4. **Implement loading states** - API calls may take time, show loading indicators to users.
+4. **Handle token expiration** - tokens expire in 1 hour. Implement automatic refresh or redirect to login.
 
-5. **Handle network errors gracefully** - Always wrap API calls in try-catch blocks and provide meaningful error messages to users.
+5. **Implement loading states** - API calls may take time, show loading indicators to users.
+
+6. **Handle network errors gracefully** - Always wrap API calls in try-catch blocks and provide meaningful error messages to users.
+
+7. **Environment configuration** - Use environment variables only when frontend and backend are on different domains.
