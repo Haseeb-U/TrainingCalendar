@@ -40,18 +40,6 @@ fetch('/api/users/login')
 fetch('http://localhost:5000/api/users/login')
 ```
 
-### For Cross-Domain Setups
-If your frontend and backend are on different domains, use environment variables:
-
-```javascript
-// .env file
-REACT_APP_API_URL=http://localhost:5000
-
-// In your code
-const API_BASE_URL = process.env.REACT_APP_API_URL || '';
-fetch(`${API_BASE_URL}/api/users/login`)
-```
-
 ## Authentication
 
 ### How JWT Works
@@ -348,65 +336,7 @@ function displayErrors(errors) {
 }
 ```
 
-### API Configuration Utility
-```javascript
-class ApiConfig {
-  static getBaseUrl() {
-    // For cross-domain setups
-    return process.env.REACT_APP_API_URL || '';
-  }
-  
-  static getFullUrl(endpoint) {
-    const baseUrl = this.getBaseUrl();
-    return baseUrl ? `${baseUrl}${endpoint}` : endpoint;
-  }
-}
 
-// Usage for cross-domain
-fetch(ApiConfig.getFullUrl('/api/users/login'))
-
-// Or simply use relative URLs for same-domain
-fetch('/api/users/login')
-```
-
-### Token Management Utility
-```javascript
-class AuthManager {
-  static setToken(token) {
-    localStorage.setItem('authToken', token);
-  }
-  
-  static getToken() {
-    return localStorage.getItem('authToken');
-  }
-  
-  static removeToken() {
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('userName');
-  }
-  
-  static isAuthenticated() {
-    return !!this.getToken();
-  }
-  
-  static getAuthHeaders() {
-    const token = this.getToken();
-    return token ? {
-      'Content-Type': 'application/json',
-      'x-auth-token': token
-    } : {
-      'Content-Type': 'application/json'
-    };
-  }
-}
-
-// Usage
-const response = await fetch('/api/users/change-password', {
-  method: 'PATCH',
-  headers: AuthManager.getAuthHeaders(),
-  body: JSON.stringify(data)
-});
-```
 
 ## Notes for Frontend Developers
 
