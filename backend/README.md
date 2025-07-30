@@ -6,17 +6,18 @@ Welcome! This guide will help you set up the frontend for the Training Calendar 
 
 ## 1. Where to Put Your Frontend Files
 
-- **All your frontend code (HTML, CSS, JS, React, etc.) should go in a folder named `client/` at the root of the project.**
+- **All your frontend code (HTML, CSS, JS, React, etc.) should go in a folder named `public/` inside the `backend/` folder.**
 - Example structure:
   ```
   TrainingCalendar/
     backend/
+      public/
+        index.html
+        main.js
+        styles.css
+        ...
       ...
-    client/
-      index.html
-      main.js
-      styles.css
-      ...
+    ...
   ```
 
 ---
@@ -337,8 +338,10 @@ Below are the main backend routes you will use, with simple explanations and cod
 
 ## 7. Summary
 
-- Put all frontend files in the `client/` folder.
+- Put all frontend files in the `backend/public/` folder.
 - Start the backend before testing your frontend.
 - Use relative URLs for all API calls.
 - Include the JWT token for protected routes.
-- Handle
+- Handle errors gracefully.
+
+Happy coding!
