@@ -33,8 +33,26 @@ async function initDatabase() {
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     email VARCHAR(100) UNIQUE NOT NULL,
+    employee_no INT NOT NULL,
     password VARCHAR(255) NOT NULL,
     date DATE DEFAULT (CURRENT_DATE)
+);
+  `);
+
+  await db.query(`
+    CREATE TABLE IF NOT EXISTS Trainings (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    duration INT NOT NULL,
+    number_of_participants INT NOT NULL,
+    schedule_date DATE NOT NULL,
+    created_at DATE DEFAULT (CURRENT_DATE),
+    venue VARCHAR(100) NOT NULL,
+    status ENUM('pending', 'completed') DEFAULT 'pending',
+    training_hours INT NOT NULL,
+    notification_recipients JSON NOT NULL,
+    user_id INT,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE 
 );
   `);
 
