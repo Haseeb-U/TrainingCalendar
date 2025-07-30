@@ -1,355 +1,344 @@
-# Training Calendar Backend API Documentation
+# Training Calendar Frontend Developer Guide
 
-This document provides step-by-step instructions for frontend developers on how to use all the API routes available in the Training Calendar backend.
+Welcome! This guide will help you set up the frontend for the Training Calendar project and connect it to the backend services. No backend experience is needed.
 
-## Table of Contents
-- [Getting Started](#getting-started)
-- [Configuration](#configuration)
-- [Authentication](#authentication)
-- [User Routes](#user-routes)
-- [Error Handling](#error-handling)
-- [Example Usage](#example-usage)
+---
 
-## Getting Started
+## 1. Where to Put Your Frontend Files
 
-### Base URL
-```
-Development: http://localhost:5000
-Production: Use relative URLs (/api/...)
-```
+- **All your frontend code (HTML, CSS, JS, React, etc.) should go in a folder named `client/` at the root of the project.**
+- Example structure:
+  ```
+  TrainingCalendar/
+    backend/
+      ...
+    client/
+      index.html
+      main.js
+      styles.css
+      ...
+  ```
 
-### Headers Required
-For protected routes, include the JWT token in headers:
-```javascript
-headers: {
-  'Content-Type': 'application/json',
-  'x-auth-token': 'your-jwt-token-here'
-}
-```
+---
 
-## Configuration
+## 2. How to Run the Backend
 
-### Recommended Approach
-Use relative URLs for API calls when your frontend and backend are served from the same domain:
+1. **Install Node.js** if you don't have it: [Download Node.js](https://nodejs.org/)
+2. **Install backend dependencies:**
+   - Open a terminal and run:
+     ```
+     cd backend
+     npm install
+     ```
+3. **Start the backend server:**
+   - In the same terminal, run:
+     ```
+     npm run dev
+     ```
+   - The backend will run at [http://localhost:5000](http://localhost:5000)
 
-```javascript
-// Good - works in all environments
-fetch('/api/users/login')
+---
 
-// Avoid - hardcoded URLs
-fetch('http://localhost:5000/api/users/login')
-```
+## 3. How to Connect Frontend to Backend
 
-## Authentication
+- **Use relative URLs** for API calls.  
+  Example:
+  ```js
+  fetch('/api/users/login', { ... })
+  ```
+- **Do NOT** use hardcoded URLs like `http://localhost:5000/api/...`  
+  This ensures your code works in both development and production.
 
-### How JWT Works
-1. Register or login to get a JWT token
-2. Store the token (localStorage/sessionStorage)
-3. Include the token in the `x-auth-token` header for protected routes
-4. Token expires in 1 hour
+---
 
-## User Routes
+## 4. Using Backend Services (API Routes)
 
-### 1. User Registration
-**Endpoint:** `POST /api/users/register`  
-**Access:** Public  
-**Purpose:** Create a new user account
+Below are the main backend routes you will use, with simple explanations and code examples.
 
-**Request Body:**
-```javascript
-{
-  "name": "John Doe",
-  "email": "john@example.com",
-  "password": "password123"
-}
-```
+---
 
-**Example JavaScript Code:**
-```javascript
-async function registerUser(name, email, password) {
-  try {
-    const response = await fetch('/api/users/register', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        name: name,
-        email: email,
-        password: password
-      })
-    });
+### **A. User Routes**
 
-    const data = await response.json();
-    
-    if (response.ok) {
-      console.log('Success:', data.msg);
-      // Registration successful
-      return { success: true, message: data.msg };
-    } else {
-      console.log('Error:', data.errors);
-      // Handle validation errors
-      return { success: false, errors: data.errors };
-    }
-  } catch (error) {
-    console.error('Network error:', error);
-    return { success: false, error: 'Network error occurred' };
+#### 1. Register a New User
+
+- **Endpoint:** `POST /api/users/register`
+- **Purpose:** Create a new user account.
+- **Request Body:**
+  ```json
+  {
+    "name": "Your Name",
+    "email": "your@email.com",
+    "password": "yourpassword"
   }
-}
-
-// Usage
-registerUser('John Doe', 'john@example.com', 'password123');
-```
-
-**Validation Rules:**
-- Name: Required, cannot be empty
-- Email: Must be a valid email format
-- Password: Minimum 8 characters
-
-**Success Response (201):**
-```javascript
-{
-  "msg": "User registered successfully"
-}
-```
-
-**Error Response (400):**
-```javascript
-{
-  "errors": [
-    {
-      "msg": "Name is required"
-    }
-  ]
-}
-```
-
-### 2. User Login
-**Endpoint:** `POST /api/users/login`  
-**Access:** Public  
-**Purpose:** Authenticate user and get JWT token
-
-**Request Body:**
-```javascript
-{
-  "email": "john@example.com",
-  "password": "password123"
-}
-```
-
-**Example JavaScript Code:**
-```javascript
-async function loginUser(email, password) {
-  try {
-    const response = await fetch('/api/users/login', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        email: email,
-        password: password
-      })
-    });
-
-    const data = await response.json();
-    
-    if (response.ok) {
-      // Store token for future requests
-      localStorage.setItem('authToken', data.token);
-      localStorage.setItem('userName', data.user.name);
-      
-      console.log('Login successful:', data.user.name);
-      return { success: true, token: data.token, user: data.user };
-    } else {
-      console.log('Login failed:', data.errors);
-      return { success: false, errors: data.errors };
-    }
-  } catch (error) {
-    console.error('Network error:', error);
-    return { success: false, error: 'Network error occurred' };
-  }
-}
-
-// Usage
-loginUser('john@example.com', 'password123');
-```
-
-**Success Response (200):**
-```javascript
-{
-  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-  "user": {
-    "name": "John Doe"
-  }
-}
-```
-
-**Error Response (400):**
-```javascript
-{
-  "errors": [
-    {
-      "msg": "Invalid Credentials"
-    }
-  ]
-}
-```
-
-### 3. Change Password
-**Endpoint:** `PATCH /api/users/change-password`  
-**Access:** Private (requires JWT token)  
-**Purpose:** Change user's current password
-
-**Request Body:**
-```javascript
-{
-  "password": "oldpassword123",
-  "newPassword": "newpassword456"
-}
-```
-
-**Example JavaScript Code:**
-```javascript
-async function changePassword(currentPassword, newPassword) {
-  try {
-    const token = localStorage.getItem('authToken');
-    
-    if (!token) {
-      return { success: false, error: 'No authentication token found' };
-    }
-
-    const response = await fetch('/api/users/change-password', {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-auth-token': token
-      },
-      body: JSON.stringify({
-        password: currentPassword,
-        newPassword: newPassword
-      })
-    });
-
-    const data = await response.json();
-    
-    if (response.ok) {
-      console.log('Password changed successfully');
-      return { success: true, message: data.msg };
-    } else {
-      console.log('Password change failed:', data.errors);
-      return { success: false, errors: data.errors };
-    }
-  } catch (error) {
-    console.error('Network error:', error);
-    return { success: false, error: 'Network error occurred' };
-  }
-}
-
-// Usage
-changePassword('oldpassword123', 'newpassword456');
-```
-
-**Validation Rules:**
-- Current password: Required
-- New password: Minimum 8 characters
-
-**Success Response (200):**
-```javascript
-{
-  "msg": "Password changed successfully"
-}
-```
-
-**Error Responses:**
-- **401 Unauthorized:** Token missing or invalid
-- **400 Bad Request:** Invalid credentials or validation errors
-
-## Error Handling
-
-### Common Error Status Codes
-- **400 Bad Request:** Validation errors or invalid data
-- **401 Unauthorized:** Missing or invalid authentication token
-- **403 Forbidden:** Access denied
-- **404 Not Found:** Resource not found
-- **500 Internal Server Error:** Server error
-
-### Example Error Handler
-```javascript
-function handleApiError(response, data) {
-  switch (response.status) {
-    case 400:
-      console.log('Validation errors:', data.errors);
-      return 'Please check your input data';
-    case 401:
-      console.log('Authentication error:', data.error);
-      localStorage.removeItem('authToken');
-      window.location.href = '/login';
-      return 'Please log in again';
-    case 403:
-      console.log('Access denied:', data.msg);
-      return 'You do not have permission to perform this action';
-    case 404:
-      console.log('Not found:', data.msg);
-      return 'Resource not found';
-    case 500:
-      console.log('Server error');
-      return 'Server error occurred. Please try again later';
-    default:
-      return 'An unexpected error occurred';
-  }
-}
-```
-
-## Example Usage
-
-### Complete Login Flow
-```javascript
-// Login form handler
-document.getElementById('loginForm').addEventListener('submit', async (e) => {
-  e.preventDefault();
-  
-  const email = document.getElementById('email').value;
-  const password = document.getElementById('password').value;
-  
-  const result = await loginUser(email, password);
-  
-  if (result.success) {
-    // Redirect to dashboard
-    window.location.href = '/dashboard';
-  } else {
-    // Display error messages
-    displayErrors(result.errors || [result.error]);
-  }
-});
-
-function displayErrors(errors) {
-  const errorDiv = document.getElementById('errors');
-  errorDiv.innerHTML = '';
-  
-  errors.forEach(error => {
-    const errorElement = document.createElement('div');
-    errorElement.className = 'error-message';
-    errorElement.textContent = error.msg || error;
-    errorDiv.appendChild(errorElement);
+  ```
+- **Example:**
+  ```js
+  fetch('/api/users/register', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      name: 'Your Name',
+      email: 'your@email.com',
+      password: 'yourpassword'
+    })
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.msg) alert('Registered!');
+    else alert(data.errors[0].msg);
   });
-}
-```
+  ```
 
+#### 2. Login
 
+- **Endpoint:** `POST /api/users/login`
+- **Purpose:** Authenticate and get a JWT token.
+- **Request Body:**
+  ```json
+  {
+    "email": "your@email.com",
+    "password": "yourpassword"
+  }
+  ```
+- **Example:**
+  ```js
+  fetch('/api/users/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      email: 'your@email.com',
+      password: 'yourpassword'
+    })
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.token) {
+      localStorage.setItem('authToken', data.token);
+      alert('Login successful!');
+    } else {
+      alert(data.errors[0].msg);
+    }
+  });
+  ```
 
-## Notes for Frontend Developers
+#### 3. Change Password
 
-1. **Use relative URLs** when possible - they work across all environments without modification.
+- **Endpoint:** `PATCH /api/users/change-password`
+- **Purpose:** Change your password (must be logged in).
+- **Headers:** Add `'x-auth-token': <your token>`
+- **Request Body:**
+  ```json
+  {
+    "password": "oldpassword",
+    "newPassword": "newpassword"
+  }
+  ```
+- **Example:**
+  ```js
+  fetch('/api/users/change-password', {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-auth-token': localStorage.getItem('authToken')
+    },
+    body: JSON.stringify({
+      password: 'oldpassword',
+      newPassword: 'newpassword'
+    })
+  })
+  .then(res => res.json())
+  .then(data => alert(data.msg || data.errors[0].msg));
+  ```
 
-2. **Always validate input on the frontend** before sending requests to reduce server load and improve user experience.
+---
 
-3. **Store JWT tokens securely** - consider using httpOnly cookies for better security in production.
+### **B. Training Routes**
 
-4. **Handle token expiration** - tokens expire in 1 hour. Implement automatic refresh or redirect to login.
+#### 1. Create a Training
 
-5. **Implement loading states** - API calls may take time, show loading indicators to users.
+- **Endpoint:** `POST /api/trainings/create`
+- **Purpose:** Add a new training event (must be logged in).
+- **Headers:** `'x-auth-token': <your token>`
+- **Request Body:**
+  ```json
+  {
+    "name": "React Basics",
+    "duration": 2,
+    "number_of_participants": 10,
+    "schedule_date": "2025-08-01",
+    "venue": "Room 101",
+    "training_hours": 4,
+    "notification_recipients": "[\"someone@email.com\"]",
+    "status": "pending"
+  }
+  ```
+- **Example:**
+  ```js
+  fetch('/api/trainings/create', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-auth-token': localStorage.getItem('authToken')
+    },
+    body: JSON.stringify({
+      name: 'React Basics',
+      duration: 2,
+      number_of_participants: 10,
+      schedule_date: '2025-08-01',
+      venue: 'Room 101',
+      training_hours: 4,
+      notification_recipients: JSON.stringify(['someone@email.com']),
+      status: 'pending'
+    })
+  })
+  .then(res => res.json())
+  .then(data => alert(data.msg || data.errors[0].msg));
+  ```
 
-6. **Handle network errors gracefully** - Always wrap API calls in try-catch blocks and provide meaningful error messages to users.
+#### 2. Update a Training
 
-7. **Environment configuration** - Use environment variables only when frontend and backend are on different domains.
+- **Endpoint:** `PATCH /api/trainings/update`
+- **Purpose:** Edit an existing training (must be logged in).
+- **Headers:** `'x-auth-token': <your token>`
+- **Request Body:** Same as create, but add `"training_id": <id>`
+- **Example:**
+  ```js
+  fetch('/api/trainings/update', {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-auth-token': localStorage.getItem('authToken')
+    },
+    body: JSON.stringify({
+      training_id: 1,
+      name: 'React Advanced',
+      duration: 3,
+      number_of_participants: 12,
+      schedule_date: '2025-08-02',
+      venue: 'Room 102',
+      training_hours: 6,
+      notification_recipients: JSON.stringify(['another@email.com']),
+      status: 'completed'
+    })
+  })
+  .then(res => res.json())
+  .then(data => alert(data.msg || data.errors[0].msg));
+  ```
+
+#### 3. Delete a Training
+
+- **Endpoint:** `DELETE /api/trainings/:training_id`
+- **Purpose:** Remove a training (must be logged in).
+- **Headers:** `'x-auth-token': <your token>`
+- **Example:**
+  ```js
+  fetch('/api/trainings/1', {
+    method: 'DELETE',
+    headers: {
+      'x-auth-token': localStorage.getItem('authToken')
+    }
+  })
+  .then(res => res.json())
+  .then(data => alert(data.msg || data.errors[0].msg));
+  ```
+
+#### 4. Get My Trainings
+
+- **Endpoint:** `GET /api/trainings/my-trainings`
+- **Purpose:** List all trainings you created (must be logged in).
+- **Headers:** `'x-auth-token': <your token>`
+- **Example:**
+  ```js
+  fetch('/api/trainings/my-trainings', {
+    headers: {
+      'x-auth-token': localStorage.getItem('authToken')
+    }
+  })
+  .then(res => res.json())
+  .then(data => console.log(data));
+  ```
+
+#### 5. Update Training Status
+
+- **Endpoint:** `PATCH /api/trainings/status`
+- **Purpose:** Change a training's status (pending/completed).
+- **Headers:** `'x-auth-token': <your token>`
+- **Request Body:**
+  ```json
+  {
+    "training_id": 1,
+    "status": "completed"
+  }
+  ```
+- **Example:**
+  ```js
+  fetch('/api/trainings/status', {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-auth-token': localStorage.getItem('authToken')
+    },
+    body: JSON.stringify({
+      training_id: 1,
+      status: 'completed'
+    })
+  })
+  .then(res => res.json())
+  .then(data => alert(data.msg || data.errors[0].msg));
+  ```
+
+---
+
+### **C. Share Training Data**
+
+- **Endpoint:** `POST /api/trainings/shareTrainingData`
+- **Purpose:** Email your training data as a CSV file to any email address.
+- **Headers:** `'x-auth-token': <your token>`
+- **Request Body:**
+  ```json
+  {
+    "email": "recipient@email.com"
+  }
+  ```
+- **Example:**
+  ```js
+  fetch('/api/trainings/shareTrainingData', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-auth-token': localStorage.getItem('authToken')
+    },
+    body: JSON.stringify({
+      email: 'recipient@email.com'
+    })
+  })
+  .then(res => res.json())
+  .then(data => alert(data.msg || data.errors[0].msg));
+  ```
+
+---
+
+## 5. General Tips
+
+- **Always check responses** for errors and show friendly messages to users.
+- **Store the JWT token** (from login) in `localStorage` or `sessionStorage`.
+- **Logout:** Remove the token from storage.
+- **If you get a 401 error:** The token is missing or expired; ask the user to log in again.
+- **Use try-catch** in async functions to handle network errors.
+
+---
+
+## 6. Where to Get More Info
+
+- The backend API documentation is in [backend/README.md](backend/README.md).
+- If you need new API features, ask the backend developer.
+
+---
+
+## 7. Summary
+
+- Put all frontend files in the `client/` folder.
+- Start the backend before testing your frontend.
+- Use relative URLs for all API calls.
+- Include the JWT token for protected routes.
+- Handle
