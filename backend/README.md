@@ -290,7 +290,7 @@ Below are the main backend routes you will use, with simple explanations and cod
 
 ---
 
-### **C. Share Training Data**
+### **C. Share Training Data **
 
 - **Endpoint:** `POST /api/trainings/shareTrainingData`
 - **Purpose:** Email your training data as a CSV file to any email address, filtered by a date range.
