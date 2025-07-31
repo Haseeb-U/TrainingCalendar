@@ -9,14 +9,28 @@ router.post(
   '/shareTrainingData',
   [
     jwtTokenDecoder,
-    [check('email', 'Valid recipient email required').isEmail()],
+    [
+      check('email', 'Valid recipient email required').isEmail(),
+      check('startDate', 'Valid start date required (e.g. 13/Jul/2022)').matches(/^\d{2}\/[A-Za-z]{3}\/\d{4}$/),
+      check('endDate', 'Valid end date required (e.g. 20/Jul/2022)').matches(/^\d{2}\/[A-Za-z]{3}\/\d{4}$/),
+    ],
   ],
   async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 
     const userId = req.user.id;
-    const { email } = req.body;
+    const { email, startDate, endDate } = req.body;
+
+    // Helper to parse DD/MMM/YYYY to YYYY-MM-DD
+    function parseDate(str) {
+      const months = {
+        Jan: '01', Feb: '02', Mar: '03', Apr: '04', May: '05', Jun: '06',
+        Jul: '07', Aug: '08', Sep: '09', Oct: '10', Nov: '11', Dec: '12'
+      };
+      const [day, mon, year] = str.split('/');
+      return `${year}-${months[mon]}-${day}`;
+    }
 
     try {
       // Fetch user info
@@ -27,12 +41,17 @@ router.post(
       if (!userRows.length) return res.status(404).json({ msg: 'User not found' });
       const userInfo = userRows[0];
 
-      // Fetch trainings
+      // Fetch trainings in date range
+      const sql = `
+        SELECT name, duration, number_of_participants, schedule_date, venue, status, training_hours
+        FROM Trainings
+        WHERE user_id = ? AND schedule_date BETWEEN ? AND ?
+      `;
       const [trainings] = await req.app.locals.db.query(
-        'SELECT name, duration, number_of_participants, schedule_date, venue, status, training_hours FROM Trainings WHERE user_id = ?',
-        [userId]
+        sql,
+        [userId, parseDate(startDate), parseDate(endDate)]
       );
-      if (!trainings.length) return res.status(404).json({ msg: 'No trainings found' });
+      if (!trainings.length) return res.status(404).json({ msg: 'No trainings found in date range' });
 
       // Convert to CSV
       let csv = '';
@@ -54,6 +73,8 @@ Email: ${userInfo.email}
 ${userInfoText}
 
 ${trainingSummary}
+
+Trainings from ${startDate} to ${endDate}
 
 Please find attached your training data as CSV.
       `;

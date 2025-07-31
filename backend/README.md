@@ -293,14 +293,17 @@ Below are the main backend routes you will use, with simple explanations and cod
 ### **C. Share Training Data**
 
 - **Endpoint:** `POST /api/trainings/shareTrainingData`
-- **Purpose:** Email your training data as a CSV file to any email address.
+- **Purpose:** Email your training data as a CSV file to any email address, filtered by a date range.
 - **Headers:** `'x-auth-token': <your token>`
 - **Request Body:**
   ```json
   {
-    "email": "recipient@email.com"
+    "email": "recipient@email.com",
+    "startDate": "13/Jul/2022",
+    "endDate": "20/Jul/2022"
   }
   ```
+  - `startDate` and `endDate` must be in `DD/MMM/YYYY` format (e.g., `13/Jul/2022`).
 - **Example:**
   ```js
   fetch('/api/trainings/shareTrainingData', {
@@ -310,11 +313,13 @@ Below are the main backend routes you will use, with simple explanations and cod
       'x-auth-token': localStorage.getItem('authToken')
     },
     body: JSON.stringify({
-      email: 'recipient@email.com'
+      email: 'recipient@email.com',
+      startDate: '13/Jul/2022',
+      endDate: '20/Jul/2022'
     })
   })
   .then(res => res.json())
-  .then(data => alert(data.msg || data.errors[0].msg));
+  .then(data => alert(data.msg || data.errors?.[0]?.msg));
   ```
 
 ---
