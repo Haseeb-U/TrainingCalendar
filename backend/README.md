@@ -12,7 +12,7 @@ Welcome! This guide will help you set up the frontend for the Training Calendar 
   TrainingCalendar/
     backend/
       public/
-        index.html
+        homepage.html
         main.js
         styles.css
         ...
@@ -22,7 +22,36 @@ Welcome! This guide will help you set up the frontend for the Training Calendar 
 
 ---
 
-## 2. How to Run the Backend
+
+## 2. Configure Environment Variables (.env)
+
+Before running the backend, you need to create a `.env` file in the `backend/` folder. This file stores sensitive configuration like database credentials, JWT secret, and email settings.
+
+
+**Important:**
+
+- You must have a live MySQL database running and accessible with the credentials you provide in the `.env` file **before** starting the backend server. The backend will not work without a working database connection.
+
+**Steps:**
+
+1. In the `backend/` folder, create a file named `.env` (no filename, just `.env`).
+2. Copy and paste the following sample content into your `.env` file, and update the values as needed:
+   ```env
+   MYSQL_HOST=localhost
+   MYSQL_USER=root
+   MYSQL_PASSWORD=root
+   MYSQL_DB_NAME=TrainingCalendarDB
+   JWT_SECRET=your_jwt_secret
+   PORT=5000
+   EMAIL_USER=your_email@gmail.com
+   EMAIL_PASS=your_email_password_or_app_password
+   ```
+   - Replace `your_jwt_secret` with a strong secret string.
+   - Replace `EMAIL_USER` and `EMAIL_PASS` with your email and password (or app password if using Gmail).
+
+---
+
+## 3. How to Run the Backend
 
 1. **Install Node.js** if you don't have it: [Download Node.js](https://nodejs.org/)
 2. **Install backend dependencies:**
@@ -37,6 +66,8 @@ Welcome! This guide will help you set up the frontend for the Training Calendar 
      npm run dev
      ```
    - The backend will run at [http://localhost:5000](http://localhost:5000)
+
+---
 
 ---
 

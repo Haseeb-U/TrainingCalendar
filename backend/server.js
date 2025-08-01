@@ -10,42 +10,13 @@ app.use(express.json());
 
 const port = process.env.PORT || 5000;
 
+// Serve static files from the public directory
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Explicitly serve homepage.html at root
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'homepage.html'));
 });
-
-
-app.get('/signup.html', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'signup.html'));
-});
-
-
-app.get('/Login.html', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'Login.html'));
-});
-
-
-
-app.get('/main.html', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'main.html'));
-});
-
-
-
-app.get('/session.html', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'session.html'));
-});
-
-
-app.get('/table.html', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'table.html'));
-});
-
-
-app.get('/profile.html', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'profile.html'));
-});
-
 
 app.use('/api/users', require('./routes/api/users'));
 app.use('/api/trainings', require('./routes/api/trainings'));
