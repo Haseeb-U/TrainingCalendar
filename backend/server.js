@@ -1,14 +1,12 @@
 require('dotenv').config();
 
 const express = require('express');
-const connectDB = require('./DB/db');
 const path = require('path');
 const { initDatabase } = require('./DB/mysql');
 const cron = require('node-cron');
 const { sendReminders } = require('./mail/sendTrainingReminders');
 
 const app = express();
-connectDB();
 app.use(express.json());
 
 const port = process.env.PORT || 5000;
