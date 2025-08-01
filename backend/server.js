@@ -1,5 +1,4 @@
 require('dotenv').config();
-
 const express = require('express');
 const path = require('path');
 const { initDatabase } = require('./DB/mysql');
@@ -12,7 +11,39 @@ app.use(express.json());
 const port = process.env.PORT || 5000;
 
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  res.sendFile(path.join(__dirname, 'public', 'homepage.html'));
+});
+
+
+app.get('/signup.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'signup.html'));
+});
+
+
+app.get('/Login.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'Login.html'));
+});
+
+
+
+app.get('/main.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'main.html'));
+});
+
+
+
+app.get('/session.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'session.html'));
+});
+
+
+app.get('/table.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'table.html'));
+});
+
+
+app.get('/profile.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'profile.html'));
 });
 
 

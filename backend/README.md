@@ -69,6 +69,7 @@ Below are the main backend routes you will use, with simple explanations and cod
   {
     "name": "Your Name",
     "email": "your@email.com",
+    "employee_no": 12345,
     "password": "yourpassword"
   }
   ```
@@ -80,6 +81,7 @@ Below are the main backend routes you will use, with simple explanations and cod
     body: JSON.stringify({
       name: 'Your Name',
       email: 'your@email.com',
+      employee_no: 12345, // Must be an integer
       password: 'yourpassword'
     })
   })
@@ -122,6 +124,7 @@ Below are the main backend routes you will use, with simple explanations and cod
   });
   ```
 
+
 #### 3. Change Password
 
 - **Endpoint:** `PATCH /api/users/change-password`
@@ -149,6 +152,31 @@ Below are the main backend routes you will use, with simple explanations and cod
   })
   .then(res => res.json())
   .then(data => alert(data.msg || data.errors[0].msg));
+  ```
+
+#### 4. Get My Profile
+
+- **Endpoint:** `GET /api/users/profile`
+- **Purpose:** Get your user profile (must be logged in).
+- **Headers:** `'x-auth-token': <your token>`
+- **Response Example:**
+  ```json
+  {
+    "id": 1,
+    "name": "Your Name",
+    "email": "your@email.com",
+    "employee_no": 12345
+  }
+  ```
+- **Example:**
+  ```js
+  fetch('/api/users/profile', {
+    headers: {
+      'x-auth-token': localStorage.getItem('authToken')
+    }
+  })
+  .then(res => res.json())
+  .then(data => console.log(data));
   ```
 
 ---

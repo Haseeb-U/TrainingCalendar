@@ -14,6 +14,7 @@ router.post(
     [
         check('name', 'Name is required').not().isEmpty(),
         check('email', 'Please include a valid email').isEmail(),
+        check('employee_no', 'Employee number is required').isInt(),
         check('password', 'Password must be at least 8 characters').isLength({
             min: 8,
         }),
@@ -25,7 +26,7 @@ router.post(
             return res.status(400).json({ errors: errors.array() });
         }
 
-        const { name, email, password } = req.body;
+        const { name, email, employee_no, password } = req.body;
 
         try {
             const [userExists] = await req.app.locals.db.query(
@@ -43,8 +44,8 @@ router.post(
             const hashedPassword = await bcrypt.hash(password, salt);
 
             await req.app.locals.db.query(
-                'INSERT INTO users (name, email, password) VALUES (?, ?, ?)',
-                [name, email, hashedPassword]
+                'INSERT INTO users (name, email, employee_no, password) VALUES (?, ?, ?, ?)',
+                [name, email, employee_no, hashedPassword]
             );
 
             res.status(201).json({
@@ -193,8 +194,33 @@ router.patch(
 	}
 );
 
+
+// route to handle user profile requests
+// GET /api/users/profile
+// access private
+router.get(
+    '/profile',
+    jwtTokenDecoder,
+    async (req, res) => {
+        const userId = req.user.id;
+
+        try {
+            const [user] = await req.app.locals.db.query(
+                'SELECT id, name, email, employee_no FROM users WHERE id = ?',
+                [userId]
+            );
+
+            if (user.length === 0) {
+                return res.status(404).json({ msg: 'User not found' });
+            }
+
+            res.status(200).json(user[0]);
+        } catch (error) {
+            console.error(error);
+            res.status(500).send('Server error');
+        }
+    }
+);
+
+
 module.exports = router;
-
-
-
-
