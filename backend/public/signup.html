@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sign Up</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #0d1117;
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .signup-container {
+      background-color: #161b22;
+      padding: 40px;
+      border-radius: 12px;
+      width: 100%;
+      max-width: 400px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.4);
+    }
+
+    .signup-title {
+      font-size: 32px;
+      font-weight: 700;
+      color: #34d399;
+      margin-bottom: 30px;
+      text-align: center;
+    }
+
+    label {
+      display: block;
+      font-size: 16px;
+      margin-bottom: 8px;
+      margin-top: 20px;
+    }
+
+    input[type="text"],
+    input[type="email"],
+    input[type="password"] {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      background-color: #1f2937;
+      color: white;
+      font-size: 16px;
+    }
+
+    input::placeholder {
+      color: #9ca3af;
+    }
+
+    .btn-green {
+      width: 100%;
+      margin-top: 30px;
+      padding: 14px;
+      font-size: 18px;
+      border-radius: 36px;
+      font-weight: 700;
+      cursor: pointer;
+      border: none;
+      background-color: #34d399;
+      color: white;
+      transition: background-color 0.3s ease;
+    }
+
+    .btn-green:hover {
+      background-color: #2fa87a;
+    }
+  </style>
+</head>
+<body>
+  <div class="signup-container">
+    <div class="signup-title">Create Account</div>
+    <form id="signupForm">
+      <label for="fullname">Full Name</label>
+      <input type="text" id="fullname" name="fullname" placeholder="Enter your full name" required />
+
+      <label for="employeeId">Employee ID</label>
+      <input type="text" id="employeeId" name="employeeId" placeholder="Enter your employee ID" required />
+
+      <label for="email">Email</label>
+      <input type="email" id="email" name="email" placeholder="Enter your email" required />
+
+      <label for="password">Password</label>
+      <input type="password" id="password" name="password" placeholder="Create a password" required />
+
+      <button type="submit" class="btn-green">Sign Up</button>
+    </form>
+  </div>
+
+  <script>
+    document.getElementById('signupForm').addEventListener('submit', function(event) {
+      event.preventDefault();  // Prevent form submission
+
+      const name = document.getElementById('fullname').value;
+      const employeeId = document.getElementById('employeeId').value;
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+
+      // Send employeeId as employee_no (backend expects this key)
+      fetch('/api/users/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name,
+          employee_no: employeeId,  // ✅ correctly mapped key
+          email,
+          password
+        })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.msg) {
+          alert('Registered successfully!');
+          window.location.href = 'login.html';
+        } else {
+          alert(data.errors?.[0]?.msg || 'Registration failed.');
+        }
+      })
+      .catch(err => {
+        console.error('Registration failed:', err);
+        alert('Something went wrong. Please try again.');
+      });
+    });
+  </script>
+</body>
+</html>

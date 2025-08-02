@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Create Session</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      background-color: #121212;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 0;
+      color: white;
+    }
+
+    nav {
+      background-color: #1e1e1e;
+      padding: 16px 32px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+      position: relative;
+    }
+
+    .nav-title {
+      font-size: 20px;
+      font-weight: bold;
+      color: #03c988;
+    }
+
+    .nav-links {
+      position: relative;
+    }
+
+    .nav-links a, .dropdown-btn {
+      margin-left: 20px;
+      text-decoration: none;
+      color: #d1d5db;
+      font-weight: 500;
+      cursor: pointer;
+    }
+
+    .nav-links a:hover, .dropdown-btn:hover {
+      color: #03c988;
+    }
+
+    .dropdown {
+      position: relative;
+      display: inline-block;
+    }
+
+    .dropdown-content {
+      display: none;
+      position: absolute;
+      background-color: #1e1e1e;
+      min-width: 120px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      z-index: 1;
+      right: 0;
+    }
+
+    .dropdown-content a {
+      color: #d1d5db;
+      padding: 10px 16px;
+      text-decoration: none;
+      display: block;
+    }
+
+    .dropdown-content a:hover {
+      background-color: #2a2e35;
+      color: #03c988;
+    }
+
+    .dropdown:hover .dropdown-content {
+      display: block;
+    }
+
+    .page-title {
+      font-size: 24px;
+      font-weight: bold;
+      margin: 30px 0 10px 20px;
+      color: white;
+    }
+
+    .form-container {
+      background-color: #1e1e1e;
+      max-width: 700px;
+      margin: 0 auto 40px;
+      padding: 30px;
+      border-radius: 16px;
+      box-shadow: 0 0 10px white;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: bold;
+      color: white;
+    }
+
+    input, select, datalist, textarea {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 20px;
+      border-radius: 8px;
+      border: 1px solid white;
+      background-color: #1b1b1b;
+      color: white;
+      font-size: 16px;
+    }
+
+    input[type="date"]::-webkit-calendar-picker-indicator {
+      filter: invert(1);
+    }
+
+    .email-list input {
+      margin-bottom: 10px;
+    }
+
+    button {
+      background-color: #03c988;
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      font-size: 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      box-shadow: 0 0 10px white;
+      width: 100%;
+    }
+
+    button:hover {
+      background-color: #02b678;
+    }
+
+    .add-email-btn {
+      background-color: #03c988;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      font-size: 14px;
+      border-radius: 6px;
+      margin-bottom: 15px;
+      cursor: pointer;
+      box-shadow: 0 0 5px white;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navigation bar with dropdown -->
+  <nav>
+    <div class="nav-title">Training Need Assessment</div>
+    <div class="nav-links">
+      <a href="table.html">My Trainings</a>
+      <a href="main.html">Calendar</a>
+      <div class="dropdown">
+        <span class="dropdown-btn">User</span>
+        <div class="dropdown-content">
+          <a href="#">Profile</a>
+          <a href="homepage.html">Logout</a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Page title -->
+  <div class="page-title">Create Session</div>
+
+  <!-- Form container -->
+  <div class="form-container">
+    <form id="sessionForm" action="table.html" method="GET">
+
+      <label for="dateInput">Date:</label>
+      <input type="text" id="dateInput" name="date" placeholder="dd,Month,yyyy" required readonly
+             onclick="document.getElementById('realDate').showPicker()">
+
+      <input type="date" id="realDate" style="display:none" required>
+
+      <label for="name">Session Name:</label>
+      <input list="sessionNames" id="name" name="name" required>
+      <datalist id="sessionNames">
+        <option value="Team Building Workshop">
+        <option value="Agile Training">
+        <option value="Security Awareness">
+        <option value="Leadership Development">
+        <option value="Time Management">
+      </datalist>
+
+      <label for="duration">Duration (Hrs):</label>
+      <input type="number" id="duration" name="duration" min="0" required>
+
+      <label for="participants">Number of Participants:</label>
+      <input type="number" id="participants" name="participants" min="0" required>
+
+      <label for="venue">Venue:</label>
+      <input type="text" id="venue" name="venue" required>
+
+      <label for="status">Status:</label>
+      <select id="status" name="status" required>
+        <option value="Pending">Pending</option>
+        <option value="Done">Done</option>
+      </select>
+
+      <label>Participant Emails:</label>
+      <div class="email-list" id="emailList">
+        <input type="email" name="emails[]" placeholder="Enter email" required>
+      </div>
+      <button type="button" class="add-email-btn" onclick="addEmailField()">Add Another Email</button>
+
+      <label for="hours">Training Hours:</label>
+      <input type="number" id="hours" name="hours" min="0" required>
+
+      <button type="submit">Save</button>
+    </form>
+  </div>
+
+  <script>
+    function addEmailField() {
+      const emailList = document.getElementById('emailList');
+      const newInput = document.createElement('input');
+      newInput.type = 'email';
+      newInput.name = 'emails[]';
+      newInput.placeholder = 'Enter email';
+      newInput.required = true;
+      newInput.style.border = '1px solid white';
+      newInput.style.backgroundColor = '#1b1b1b';
+      newInput.style.color = 'white';
+      newInput.style.padding = '10px';
+      newInput.style.borderRadius = '8px';
+      newInput.style.fontSize = '16px';
+      newInput.style.width = '100%';
+      newInput.style.marginBottom = '10px';
+      emailList.appendChild(newInput);
+    }
+
+    const monthNames = [
+      "January", "February", "March", "April", "May", "June",
+      "July", "August", "September", "October", "November", "December"
+    ];
+
+    document.getElementById('realDate').addEventListener('change', function () {
+      const val = this.value; // yyyy-mm-dd
+      if (!val) return;
+      const parts = val.split('-');
+      if (parts.length === 3) {
+        const year = parts[0];
+        const monthIndex = parseInt(parts[1], 10) - 1;
+        const day = parts[2];
+        const monthName = monthNames[monthIndex];
+        const formatted = `${day},${monthName},${year}`; // dd,Month,yyyy
+        document.getElementById('dateInput').value = formatted;
+      }
+    });
+  </script>
+
+</body>
+</html>

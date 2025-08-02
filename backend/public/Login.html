@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #0d1117;
+      color: white;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    nav {
+      background-color: #161b22;
+      padding: 16px 32px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    }
+
+    .nav-title {
+      font-size: 20px;
+      font-weight: bold;
+      color: #34d399;
+    }
+
+    .main-content {
+      flex-grow: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .login-container {
+      background-color: #161b22;
+      padding: 40px;
+      border-radius: 12px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.3);
+      width: 100%;
+      max-width: 400px;
+    }
+
+    .login-container h2 {
+      color: #34d399;
+      text-align: center;
+      margin-bottom: 30px;
+      font-size: 32px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 16px;
+      color: #d1d5db;
+    }
+
+    input[type="email"],
+    input[type="password"] {
+      width: 100%;
+      padding: 12px;
+      border-radius: 8px;
+      border: none;
+      background-color: #0d1117;
+      color: white;
+      font-size: 16px;
+    }
+
+    .btn-green {
+      background-color: #34d399;
+      color: white;
+      border: none;
+      padding: 14px;
+      width: 100%;
+      border-radius: 8px;
+      font-size: 18px;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+
+    .btn-green:hover {
+      background-color: #2fa87a;
+    }
+
+    .back-link {
+      display: block;
+      margin-top: 20px;
+      text-align: center;
+      color: #9ca3af;
+      text-decoration: none;
+    }
+
+    .back-link:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Navbar -->
+  <nav>
+    <div class="nav-title">Training Need Assessment</div>
+  </nav>
+
+  <!-- Centered Login Content -->
+  <div class="main-content">
+    <div class="login-container">
+      <h2>Log In</h2>
+      <form id="loginForm">
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input type="email" id="email" placeholder="Enter your email" required />
+        </div>
+
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input type="password" id="password" placeholder="Enter your password" required />
+        </div>
+
+        <button class="btn-green" type="submit">Log In</button>
+      </form>
+
+      <a href="homepage.html" class="back-link">← Back to Home</a>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('loginForm').addEventListener('submit', function(event) {
+      event.preventDefault(); // Prevent form default submit
+
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+
+      fetch('/api/users/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      })
+      .then(async (res) => {
+        const data = await res.json();
+        if (res.ok && data.token) {
+          localStorage.setItem('authToken', data.token);
+          alert('Login successful!');
+          window.location.href = 'main.html';
+        } else {
+          alert(data.errors?.[0]?.msg || 'Invalid email or password');
+        }
+      })
+      .catch(err => {
+        console.error('Login failed:', err);
+        alert('Something went wrong. Please try again.');
+      });
+    });
+  </script>
+</body>
+</html>

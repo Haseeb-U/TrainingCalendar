@@ -1,14 +1,125 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Training Calendar</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Training Calendar</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #0d1117;
+      color: white;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .container {
+      flex-grow: 1;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .heading {
+      font-size: 64px;
+      font-weight: 900;
+      text-transform: uppercase;
+      color: #34d399;
+      letter-spacing: 4px;
+      margin-bottom: 50px;
+      animation: slideDown 1.2s ease-out forwards;
+      opacity: 0;
+      text-shadow: none;
+    }
+
+    @keyframes slideDown {
+      0% {
+        transform: translateY(-50px);
+        opacity: 0;
+      }
+      100% {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    .buttons {
+      display: flex;
+      gap: 24px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .btn-green, .btn-dark {
+      padding: 14px 36px;
+      font-size: 20px;
+      border-radius: 36px;
+      font-weight: 700;
+      cursor: pointer;
+      border: none;
+      transition: all 0.3s ease;
+      text-align: center;
+      text-decoration: none;
+      display: inline-block;
+      animation: fadeInUp 1s ease-in-out forwards;
+      opacity: 0;
+      box-shadow: 0 0 8px white;
+    }
+
+    .btn-green {
+      background-color: #34d399;
+      color: white;
+      animation-delay: 1.4s;
+    }
+
+    .btn-dark {
+      background-color: #1f2937;
+      color: white;
+      animation-delay: 1.6s;
+    }
+
+    .btn-green:hover {
+      background-color: #2fa87a;
+      transform: scale(1.05);
+      box-shadow: 0 0 15px #34d399, 0 0 10px white;
+    }
+
+    .btn-dark:hover {
+      background-color: #374151;
+      transform: scale(1.05);
+      box-shadow: 0 0 15px #374151, 0 0 10px white;
+    }
+
+    @keyframes fadeInUp {
+      0% {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  </style>
 </head>
 <body>
-    <h1>Welcome to the Training Calendar Application</h1>
-    <p>This is the backend server for managing training events and user registrations.</p>
-    <p>API endpoints are available at <code>/api/users</code>, <code>/api/forms</code>, and <code>/api/responses</code>.</p>
-    <p>For more information, please refer to the documentation.</p>
+
+  <div class="container">
+    <div class="heading">Training Calendar</div>
+    <div class="buttons">
+      <a href="login.html" class="btn-green">Log in</a>
+      <a href="signup.html" class="btn-dark">Sign up</a>
+    </div>
+  </div>
+
 </body>
 </html>
