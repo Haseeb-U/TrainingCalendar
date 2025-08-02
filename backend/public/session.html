@@ -148,6 +148,7 @@
       margin-bottom: 15px;
       cursor: pointer;
       box-shadow: 0 0 5px white;
+      width: auto;
     }
   </style>
 </head>
@@ -174,13 +175,14 @@
 
   <!-- Form container -->
   <div class="form-container">
-    <form id="sessionForm" action="table.html" method="GET">
+    <form id="sessionForm">
 
       <label for="dateInput">Date:</label>
       <input type="text" id="dateInput" name="date" placeholder="dd,Month,yyyy" required readonly
              onclick="document.getElementById('realDate').showPicker()">
 
-      <input type="date" id="realDate" style="display:none" required>
+      <input type="date" id="realDate" style="display:none" required
+             onchange="updateDateInput()">
 
       <label for="name">Session Name:</label>
       <input list="sessionNames" id="name" name="name" required>
@@ -221,6 +223,19 @@
   </div>
 
   <script>
+    // Update visible date input when hidden date input changes
+    function updateDateInput() {
+      const realDate = document.getElementById('realDate');
+      const dateInput = document.getElementById('dateInput');
+      if (realDate.value) {
+        // Format date as "dd,Month,yyyy"
+        const dateObj = new Date(realDate.value);
+        const options = { day: '2-digit', month: 'long', year: 'numeric' };
+        dateInput.value = dateObj.toLocaleDateString('en-GB', options).replace(/ /g, ',');
+      }
+    }
+
+    // Add another email input field
     function addEmailField() {
       const emailList = document.getElementById('emailList');
       const newInput = document.createElement('input');
@@ -228,34 +243,71 @@
       newInput.name = 'emails[]';
       newInput.placeholder = 'Enter email';
       newInput.required = true;
-      newInput.style.border = '1px solid white';
-      newInput.style.backgroundColor = '#1b1b1b';
-      newInput.style.color = 'white';
-      newInput.style.padding = '10px';
-      newInput.style.borderRadius = '8px';
-      newInput.style.fontSize = '16px';
-      newInput.style.width = '100%';
       newInput.style.marginBottom = '10px';
       emailList.appendChild(newInput);
     }
 
-    const monthNames = [
-      "January", "February", "March", "April", "May", "June",
-      "July", "August", "September", "October", "November", "December"
-    ];
+    // Handle form submission with fetch POST to API
+    document.getElementById('sessionForm').addEventListener('submit', function(event) {
+      event.preventDefault();
 
-    document.getElementById('realDate').addEventListener('change', function () {
-      const val = this.value; // yyyy-mm-dd
-      if (!val) return;
-      const parts = val.split('-');
-      if (parts.length === 3) {
-        const year = parts[0];
-        const monthIndex = parseInt(parts[1], 10) - 1;
-        const day = parts[2];
-        const monthName = monthNames[monthIndex];
-        const formatted = `${day},${monthName},${year}`; // dd,Month,yyyy
-        document.getElementById('dateInput').value = formatted;
+      const realDate = document.getElementById('realDate').value;
+      if (!realDate) {
+        alert('Please select a valid date.');
+        return;
       }
+
+      const name = document.getElementById('name').value.trim();
+      const duration = Number(document.getElementById('duration').value);
+      const participants = Number(document.getElementById('participants').value);
+      const venue = document.getElementById('venue').value.trim();
+      const status = document.getElementById('status').value.toLowerCase(); // lowercase as in API example
+      const hours = Number(document.getElementById('hours').value);
+
+      // Collect participant emails into an array
+      const emailInputs = document.querySelectorAll('input[name="emails[]"]');
+      const emails = [];
+      for (const input of emailInputs) {
+        const val = input.value.trim();
+        if (val) emails.push(val);
+      }
+
+      if (emails.length === 0) {
+        alert('Please enter at least one participant email.');
+        return;
+      }
+
+      const payload = {
+        name,
+        duration,
+        number_of_participants: participants,
+        schedule_date: realDate,
+        venue,
+        training_hours: hours,
+        notification_recipients: JSON.stringify(emails),
+        status
+      };
+
+      fetch('/api/trainings/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-auth-token': localStorage.getItem('authToken')
+        },
+        body: JSON.stringify(payload)
+      })
+      .then(res => res.json())
+      .then(data => {
+        alert(data.msg || (data.errors && data.errors[0].msg) || 'Unknown response');
+        if(data.msg) {
+          // Optionally, clear form or redirect after success
+          document.getElementById('sessionForm').reset();
+          document.getElementById('dateInput').value = '';
+        }
+      })
+      .catch(err => {
+        alert('Error submitting form: ' + err.message);
+      });
     });
   </script>
 

@@ -10,8 +10,6 @@
       background-color: #0d1117;
       color: white;
     }
-
-    /* Navbar */
     nav {
       background-color: #1e1e1e;
       padding: 16px 32px;
@@ -21,17 +19,14 @@
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
       position: relative;
     }
-
     .nav-title {
       font-size: 20px;
       font-weight: bold;
       color: #03c988;
     }
-
     .nav-links {
       position: relative;
     }
-
     .nav-links a, .dropdown-btn {
       margin-left: 20px;
       text-decoration: none;
@@ -39,17 +34,13 @@
       font-weight: 500;
       cursor: pointer;
     }
-
     .nav-links a:hover, .dropdown-btn:hover {
       color: #03c988;
     }
-
-    /* Dropdown Menu */
     .dropdown {
       position: relative;
       display: inline-block;
     }
-
     .dropdown-content {
       display: none;
       position: absolute;
@@ -59,41 +50,34 @@
       z-index: 1;
       right: 0;
     }
-
     .dropdown-content a {
       color: #d1d5db;
       padding: 10px 16px;
       text-decoration: none;
       display: block;
     }
-
     .dropdown-content a:hover {
       background-color: #2a2e35;
       color: #03c988;
     }
-
     .dropdown:hover .dropdown-content {
       display: block;
     }
-
     .container {
       max-width: 1200px;
       margin: auto;
       padding: 40px 20px;
     }
-
     h1 {
       font-size: 36px;
       margin-bottom: 20px;
     }
-
     .summary {
       margin-bottom: 20px;
       font-size: 18px;
       font-weight: bold;
       color: #34d399;
     }
-
     table {
       width: 100%;
       border-collapse: separate;
@@ -102,27 +86,22 @@
       border-radius: 12px;
       overflow: hidden;
     }
-
     thead tr {
       background-color: #34d399;
       color: white;
     }
-
     th, td {
       padding: 12px 16px;
       border-bottom: 1px solid #2a2e35;
       text-align: left;
       font-weight: 600;
     }
-
     tbody tr:hover {
       background-color: #23303f;
     }
-
     .edit-cell, .delete-cell, .checkbox-cell {
       text-align: center;
     }
-
     button.btn-edit, button.btn-delete {
       background: none;
       border: none;
@@ -135,22 +114,18 @@
       align-items: center;
       justify-content: center;
     }
-
     button.btn-edit:hover, button.btn-delete:hover {
       color: #34d399;
     }
-
     input[type="checkbox"] {
       transform: scale(1.2);
       cursor: pointer;
     }
-
     .buttons-container {
-      margin-top: 20px;
+      margin-bottom: 20px;
       display: flex;
       gap: 16px;
     }
-
     .btn-create {
       background-color: #34d399;
       color: white;
@@ -160,8 +135,10 @@
       font-weight: 700;
       font-size: 18px;
       cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
     }
-
     .btn-create:hover {
       background-color: #2fa87a;
     }
@@ -169,184 +146,148 @@
 </head>
 <body>
 
-  <!-- Navbar -->
-  <nav>
-    <div class="nav-title">Training Need Assessment</div>
-    <div class="nav-links">
-      <a href="table.html">My Trainings</a>
-      <a href="main.html">Calendar</a>
-      <div class="dropdown">
-        <span class="dropdown-btn">User</span>
-        <div class="dropdown-content">
-          <a href="#">Profile</a>
-          <a href="homepage.html">Logout</a>
-        </div>
+<nav>
+  <div class="nav-title">Training Need Assessment</div>
+  <div class="nav-links">
+    <a href="table.html">My Trainings</a>
+    <a href="main.html">Calendar</a>
+    <div class="dropdown">
+      <span class="dropdown-btn">User</span>
+      <div class="dropdown-content">
+        <a href="#">Profile</a>
+        <a href="homepage.html">Logout</a>
       </div>
     </div>
-  </nav>
-
-  <div class="container">
-    <h1>Training Sessions Table</h1>
-
-    <div class="summary" id="summaryDisplay">
-      Total Hours: 0 | Actual Hours: 0 | Percentage: 0%
-    </div>
-
-    <table>
-      <thead>
-        <tr>
-          <th>Complete</th>
-          <th>Edit</th>
-          <th>Delete</th>
-          <th>Name</th>
-          <th>Date</th>
-          <th>Duration</th>
-          <th>Venue</th>
-          <th>Participants</th>
-          <th>Status</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td class="checkbox-cell"><input type="checkbox" class="session-check"></td>
-          <td class="edit-cell">
-            <button class="btn-edit" title="Edit">
-              <!-- Pencil SVG Icon -->
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="18" height="18" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M12 20h9"></path>
-                <path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4 12.5-12.5z"></path>
-              </svg>
-            </button>
-          </td>
-          <td class="delete-cell">
-            <button class="btn-delete" onclick="deleteRow(this)" title="Delete">
-              <!-- Trash Bin SVG Icon -->
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="18" height="18" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="3 6 5 6 21 6"></polyline>
-                <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path>
-                <path d="M10 11v6"></path>
-                <path d="M14 11v6"></path>
-                <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path>
-              </svg>
-            </button>
-          </td>
-          <td>Kickoff Meeting</td>
-          <td>2025-07-01</td>
-          <td class="duration">2</td>
-          <td>Room 101</td>
-          <td class="participants">10</td>
-          <td>Good</td>
-        </tr>
-        <tr>
-          <td class="checkbox-cell"><input type="checkbox" class="session-check"></td>
-          <td class="edit-cell">
-            <button class="btn-edit" title="Edit">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="18" height="18" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M12 20h9"></path>
-                <path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4 12.5-12.5z"></path>
-              </svg>
-            </button>
-          </td>
-          <td class="delete-cell">
-            <button class="btn-delete" onclick="deleteRow(this)" title="Delete">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="18" height="18" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="3 6 5 6 21 6"></polyline>
-                <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path>
-                <path d="M10 11v6"></path>
-                <path d="M14 11v6"></path>
-                <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path>
-              </svg>
-            </button>
-          </td>
-          <td>Design Review</td>
-          <td>2025-07-05</td>
-          <td class="duration">3</td>
-          <td>Room 202</td>
-          <td class="participants">8</td>
-          <td>Excellent</td>
-        </tr>
-        <tr>
-          <td class="checkbox-cell"><input type="checkbox" class="session-check"></td>
-          <td class="edit-cell">
-            <button class="btn-edit" title="Edit">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="18" height="18" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M12 20h9"></path>
-                <path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4 12.5-12.5z"></path>
-              </svg>
-            </button>
-          </td>
-          <td class="delete-cell">
-            <button class="btn-delete" onclick="deleteRow(this)" title="Delete">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="18" height="18" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="3 6 5 6 21 6"></polyline>
-                <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path>
-                <path d="M10 11v6"></path>
-                <path d="M14 11v6"></path>
-                <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path>
-              </svg>
-            </button>
-          </td>
-          <td>Sprint Planning</td>
-          <td>2025-07-10</td>
-          <td class="duration">1.5</td>
-          <td>Online</td>
-          <td class="participants">12</td>
-          <td>Pending</td>
-        </tr>
-      </tbody>
-    </table>
-
-    <div class="buttons-container">
-      <button class="btn-create" onclick="location.href='session.html'">Create Session</button>
-    </div>
   </div>
+</nav>
 
-  <script>
-    function deleteRow(btn) {
-      const row = btn.closest("tr");
-      row.remove();
-      updateSummary();
-    }
+<div class="container">
+  <h1>Training Sessions Table</h1>
+  <div class="buttons-container">
+    <button class="btn-create" onclick="location.href='session.html'">Create Session</button>
+    <button class="btn-create" onclick="shareTable()" title="Share Table">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="20" height="20" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="18" cy="5" r="3"></circle>
+        <circle cx="6" cy="12" r="3"></circle>
+        <circle cx="18" cy="19" r="3"></circle>
+        <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+        <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+      </svg>
+      Share
+    </button>
+  </div>
+  <div class="summary" id="summaryDisplay">Total Hours: 0 | Actual Hours: 0 | Percentage: 0%</div>
+  <table>
+    <thead>
+      <tr>
+        <th>Complete</th>
+        <th>Edit</th>
+        <th>Delete</th>
+        <th>Name</th>
+        <th>Date</th>
+        <th>Duration</th>
+        <th>Venue</th>
+        <th>Participants</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody id="trainingBody"></tbody>
+  </table>
+</div>
 
-    function formatDates() {
-      const dateCells = document.querySelectorAll('tbody tr td:nth-child(5)'); // 5th column = Date
-      dateCells.forEach(cell => {
-        const isoDate = cell.textContent.trim(); // e.g. "2025-07-01"
-        const parts = isoDate.split('-');
-        if (parts.length === 3) {
-          const formatted = `${parts[2]}/${parts[1]}/${parts[0]}`; // dd/mm/yyyy
-          cell.textContent = formatted;
-        }
-      });
-    }
-
-    function updateSummary() {
-      const rows = document.querySelectorAll("tbody tr");
-      let total = 0, actual = 0;
-
-      rows.forEach(row => {
-        const participants = parseFloat(row.querySelector(".participants").textContent) || 0;
-        const duration = parseFloat(row.querySelector(".duration").textContent) || 0;
-        const isChecked = row.querySelector(".session-check").checked;
-
-        total += participants * duration;
-        if (isChecked) actual += participants * duration;
-      });
-
-      const percent = total ? ((actual / total) * 100).toFixed(1) : 0;
-      document.getElementById("summaryDisplay").textContent =
-        `Total Hours: ${total.toFixed(1)} | Actual Hours: ${actual.toFixed(1)} | Percentage: ${percent}%`;
-    }
-
-    // Format dates before updating summary
-    formatDates();
-
-    // Setup checkbox event listeners
-    document.querySelectorAll(".session-check").forEach(cb => {
-      cb.addEventListener("change", updateSummary);
+<script>
+  async function fetchTrainings() {
+    const res = await fetch('/api/trainings/my-trainings', {
+      headers: { 'x-auth-token': localStorage.getItem('authToken') }
     });
-
+    const data = await res.json();
+    const tbody = document.getElementById('trainingBody');
+    tbody.innerHTML = '';
+    data.forEach(training => {
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td class="checkbox-cell"><input type="checkbox" class="session-check" onchange="toggleStatus(${training.training_id}, this.checked)"></td>
+        <td class="edit-cell"><button class="btn-edit" onclick='editTraining(${JSON.stringify(training)})' title="Edit">✏️</button></td>
+        <td class="delete-cell"><button class="btn-delete" onclick="deleteTraining(${training.training_id})" title="Delete">🗑️</button></td>
+        <td>${training.name}</td>
+        <td>${new Date(training.schedule_date).toLocaleDateString()}</td>
+        <td class="duration">${training.duration}</td>
+        <td>${training.venue}</td>
+        <td class="participants">${training.number_of_participants}</td>
+        <td>${training.status}</td>`;
+      tbody.appendChild(row);
+    });
     updateSummary();
-  </script>
+  }
+
+  function deleteTraining(id) {
+    fetch(`/api/trainings/${id}`, {
+      method: 'DELETE',
+      headers: { 'x-auth-token': localStorage.getItem('authToken') }
+    })
+    .then(res => res.json())
+    .then(() => fetchTrainings());
+  }
+
+  function editTraining(training) {
+    const updated = { ...training, name: prompt("Update name", training.name) };
+    fetch('/api/trainings/update', {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-auth-token': localStorage.getItem('authToken')
+      },
+      body: JSON.stringify(updated)
+    })
+    .then(res => res.json())
+    .then(() => fetchTrainings());
+  }
+
+  function toggleStatus(id, complete) {
+    fetch('/api/trainings/status', {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-auth-token': localStorage.getItem('authToken')
+      },
+      body: JSON.stringify({ training_id: id, status: complete ? 'completed' : 'pending' })
+    }).then(() => fetchTrainings());
+  }
+
+  function updateSummary() {
+    const rows = document.querySelectorAll("tbody tr");
+    let total = 0, actual = 0;
+    rows.forEach(row => {
+      const participants = parseFloat(row.querySelector(".participants")?.textContent) || 0;
+      const duration = parseFloat(row.querySelector(".duration")?.textContent) || 0;
+      const isChecked = row.querySelector(".session-check")?.checked;
+      total += participants * duration;
+      if (isChecked) actual += participants * duration;
+    });
+    const percent = total ? ((actual / total) * 100).toFixed(1) : 0;
+    document.getElementById("summaryDisplay").textContent =
+      `Total Hours: ${total.toFixed(1)} | Actual Hours: ${actual.toFixed(1)} | Percentage: ${percent}%`;
+  }
+
+  function shareTable() {
+    const email = prompt("Enter email to share training data:");
+    const startDate = prompt("Start Date (e.g., 01/Aug/2022):");
+    const endDate = prompt("End Date (e.g., 31/Aug/2022):");
+    if (!email || !startDate || !endDate) return;
+
+    fetch('/api/trainings/shareTrainingData', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-auth-token': localStorage.getItem('authToken')
+      },
+      body: JSON.stringify({ email, startDate, endDate })
+    })
+    .then(res => res.json())
+    .then(data => alert(data.msg || data.errors?.[0]?.msg));
+  }
+
+  fetchTrainings();
+</script>
 </body>
 </html>
