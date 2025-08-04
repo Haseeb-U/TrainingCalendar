@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title>Edit Training Session</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #0d1117;
+      color: white;
+      padding: 40px 20px;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+    input, select {
+      width: 100%;
+      padding: 10px 12px;
+      margin-bottom: 20px;
+      border-radius: 6px;
+      border: none;
+      font-size: 16px;
+      background-color: #161b22;
+      color: white;
+    }
+    button {
+      background-color: #34d399;
+      color: white;
+      border: none;
+      padding: 14px 36px;
+      border-radius: 36px;
+      font-weight: 700;
+      font-size: 18px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #2fa87a;
+    }
+    nav {
+      background-color: #1e1e1e;
+      padding: 16px 32px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+      margin-bottom: 40px;
+    }
+    .nav-title {
+      font-size: 20px;
+      font-weight: bold;
+      color: #03c988;
+    }
+    .nav-links a {
+      color: #d1d5db;
+      text-decoration: none;
+      font-weight: 500;
+      margin-left: 20px;
+    }
+    .nav-links a:hover {
+      color: #03c988;
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-title">Training Need Assessment</div>
+  <div class="nav-links">
+    <a href="table.html">My Trainings</a>
+    <a href="main.html">Calendar</a>
+    <a href="homepage.html">Logout</a>
+  </div>
+</nav>
+
+<h1>Edit Training Session</h1>
+<form id="editForm">
+  <input type="hidden" id="training_id" name="training_id" />
+  
+  <label for="name">Name</label>
+  <input type="text" id="name" name="name" required />
+  
+  <label for="schedule_date">Date</label>
+  <input type="date" id="schedule_date" name="schedule_date" required />
+  
+  <label for="duration">Duration (hours)</label>
+  <input type="number" id="duration" name="duration" min="0" step="0.1" required />
+  
+  <label for="venue">Venue</label>
+  <input type="text" id="venue" name="venue" required />
+  
+  <label for="number_of_participants">Participants</label>
+  <input type="number" id="number_of_participants" name="number_of_participants" min="1" required />
+  
+  <label for="training_hours">Training Hours</label>
+  <input type="number" id="training_hours" name="training_hours" min="0" step="0.1" required />
+  
+  <label for="notification_recipients">Notification Recipients (comma-separated emails)</label>
+  <input type="text" id="notification_recipients" name="notification_recipients" required />
+  
+  <label for="status">Status</label>
+  <select id="status" name="status" required>
+    <option value="pending">Pending</option>
+    <option value="completed">Completed</option>
+  </select>
+  
+  <button type="submit">Save Changes</button>
+</form>
+
+<script>
+  // Parse query param id
+  const urlParams = new URLSearchParams(window.location.search);
+  const trainingId = urlParams.get('id');
+  if (!trainingId) {
+    alert('No training ID provided.');
+    window.location.href = 'table.html';
+  }
+
+  // Fetch existing training data
+  async function fetchTraining() {
+    const res = await fetch('/api/trainings/my-trainings', {
+      headers: { 'x-auth-token': localStorage.getItem('authToken') }
+    });
+    const trainings = await res.json();
+    const training = trainings.find(t => t.id == trainingId);
+    if (!training) {
+      alert('Training not found.');
+      window.location.href = 'table.html';
+      return;
+    }
+
+    // Fill form fields
+    document.getElementById('training_id').value = training.id;
+    document.getElementById('name').value = training.name;
+    document.getElementById('schedule_date').value = new Date(training.schedule_date).toISOString().slice(0,10);
+    document.getElementById('duration').value = training.duration;
+    document.getElementById('venue').value = training.venue;
+    document.getElementById('number_of_participants').value = training.number_of_participants;
+    document.getElementById('training_hours').value = training.training_hours;
+
+    // notification_recipients might be JSON string, parse to comma-separated
+    if (typeof training.notification_recipients === 'string') {
+      try {
+        const recipientsArray = JSON.parse(training.notification_recipients);
+        document.getElementById('notification_recipients').value = recipientsArray.join(', ');
+      } catch {
+        document.getElementById('notification_recipients').value = training.notification_recipients;
+      }
+    } else {
+      document.getElementById('notification_recipients').value = training.notification_recipients;
+    }
+
+    document.getElementById('status').value = training.status;
+  }
+
+  // Submit updated data
+  document.getElementById('editForm').addEventListener('submit', async e => {
+    e.preventDefault();
+
+    const updatedTraining = {
+      training_id: document.getElementById('training_id').value,
+      name: document.getElementById('name').value,
+      schedule_date: document.getElementById('schedule_date').value,
+      duration: parseFloat(document.getElementById('duration').value),
+      venue: document.getElementById('venue').value,
+      number_of_participants: parseInt(document.getElementById('number_of_participants').value),
+      training_hours: parseFloat(document.getElementById('training_hours').value),
+      notification_recipients: JSON.stringify(
+        document.getElementById('notification_recipients').value
+          .split(',')
+          .map(email => email.trim())
+      ),
+      status: document.getElementById('status').value,
+    };
+
+    const res = await fetch('/api/trainings/update', {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-auth-token': localStorage.getItem('authToken'),
+      },
+      body: JSON.stringify(updatedTraining),
+    });
+
+    const data = await res.json();
+    if (res.ok) {
+      alert('Training updated successfully!');
+      window.location.href = 'table.html';
+    } else {
+      alert(data.msg || data.errors?.[0]?.msg || 'Failed to update');
+    }
+  });
+
+  fetchTraining();
+</script>
+
+</body>
+</html>

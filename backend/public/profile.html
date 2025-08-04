@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>User Profile</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #0d1117;
+      color: white;
+      padding: 0;
+    }
+
+    /* Navbar */
+    nav {
+      background-color: #1e1e1e;
+      padding: 16px 32px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+      position: relative;
+    }
+
+    .nav-title {
+      font-size: 20px;
+      font-weight: bold;
+      color: #03c988;
+    }
+
+    .nav-links {
+      position: relative;
+    }
+
+    .nav-links a, .dropdown-btn {
+      margin-left: 20px;
+      text-decoration: none;
+      color: #d1d5db;
+      font-weight: 500;
+      cursor: pointer;
+    }
+
+    .nav-links a:hover, .dropdown-btn:hover {
+      color: #03c988;
+    }
+
+    .dropdown {
+      position: relative;
+      display: inline-block;
+    }
+
+    .dropdown-content {
+      display: none;
+      position: absolute;
+      background-color: #1e1e1e;
+      min-width: 120px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      z-index: 1;
+      right: 0;
+    }
+
+    .dropdown-content a {
+      color: #d1d5db;
+      padding: 10px 16px;
+      text-decoration: none;
+      display: block;
+    }
+
+    .dropdown-content a:hover {
+      background-color: #2a2e35;
+      color: #03c988;
+    }
+
+    .dropdown:hover .dropdown-content {
+      display: block;
+    }
+
+    /* Profile Container */
+    .container {
+      max-width: 600px;
+      margin: 60px auto;
+      background-color: #161b22;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 0 15px white; /* White shadow around container */
+    }
+
+    .profile-header {
+      font-size: 26px;
+      font-weight: bold;
+      margin-bottom: 30px;
+      text-align: center;
+      color: #34d399;
+    }
+
+    .info {
+      margin-bottom: 25px;
+    }
+
+    .info label {
+      display: block;
+      font-weight: bold;
+      margin-bottom: 6px;
+      color: #d1d5db;
+    }
+
+    .info span {
+      display: block;
+      color: #9ca3af;
+      font-size: 16px;
+    }
+
+    .change-password {
+      text-align: center;
+      margin-top: 30px;
+    }
+
+    .change-password button {
+      background-color: #03c988; /* original background */
+      color: white; /* only text color changed */
+      border: none;
+      padding: 12px 24px;
+      font-size: 16px;
+      font-weight: bold;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: box-shadow 0.3s;
+      box-shadow: 0 0 8px white;
+    }
+
+    .change-password button:hover {
+      box-shadow: 0 0 12px #ffffff;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navbar -->
+  <nav>
+    <div class="nav-title">Training Need Assessment</div>
+    <div class="nav-links">
+      <a href="table.html">My Trainings</a>
+      <div class="dropdown">
+        <span class="dropdown-btn">User</span>
+        <div class="dropdown-content">
+          <a href="#">Profile</a>
+          <a href="homepage.html">Logout</a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Profile Container -->
+  <div class="container">
+    <div class="profile-header">User Profile</div>
+
+    <div class="info">
+      <label>Name</label>
+      <span>John Doe</span>
+    </div>
+
+    <div class="info">
+      <label>Email</label>
+      <span>johndoe@example.com</span>
+    </div>
+
+    <div class="info">
+      <label>Employee ID</label>
+      <span>EMP123456</span>
+    </div>
+
+    <div class="change-password">
+      <button>Change Password</button>
+    </div>
+  </div>
+
+</body>
+</html>

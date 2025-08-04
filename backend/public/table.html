@@ -142,6 +142,12 @@
     .btn-create:hover {
       background-color: #2fa87a;
     }
+    /* NEW: Style for completed rows */
+    .status-completed {
+      background-color: #164e26 !important; /* dark green */
+      color: #a7f3d0;
+      font-weight: 700;
+    }
   </style>
 </head>
 <body>
@@ -194,100 +200,92 @@
     <tbody id="trainingBody"></tbody>
   </table>
 </div>
-
 <script>
-  async function fetchTrainings() {
-    const res = await fetch('/api/trainings/my-trainings', {
-      headers: { 'x-auth-token': localStorage.getItem('authToken') }
-    });
-    const data = await res.json();
-    const tbody = document.getElementById('trainingBody');
-    tbody.innerHTML = '';
-    data.forEach(training => {
-      const row = document.createElement('tr');
-      row.innerHTML = `
-        <td class="checkbox-cell"><input type="checkbox" class="session-check" onchange="toggleStatus(${training.training_id}, this.checked)"></td>
-        <td class="edit-cell"><button class="btn-edit" onclick='editTraining(${JSON.stringify(training)})' title="Edit">✏️</button></td>
-        <td class="delete-cell"><button class="btn-delete" onclick="deleteTraining(${training.training_id})" title="Delete">🗑️</button></td>
-        <td>${training.name}</td>
-        <td>${new Date(training.schedule_date).toLocaleDateString()}</td>
-        <td class="duration">${training.duration}</td>
-        <td>${training.venue}</td>
-        <td class="participants">${training.number_of_participants}</td>
-        <td>${training.status}</td>`;
-      tbody.appendChild(row);
-    });
-    updateSummary();
-  }
+async function fetchTrainings() {
+  const res = await fetch('/api/trainings/my-trainings', {
+    headers: { 'x-auth-token': localStorage.getItem('authToken') }
+  });
+  const data = await res.json();
+  const tbody = document.getElementById('trainingBody');
+  tbody.innerHTML = '';
+  data.forEach(training => {
+    const row = document.createElement('tr');
+    // Add class if status is 'completed'
+    const rowClass = training.status === 'completed' ? 'status-completed' : '';
+    row.className = rowClass;
 
-  function deleteTraining(id) {
-    fetch(`/api/trainings/${id}`, {
-      method: 'DELETE',
-      headers: { 'x-auth-token': localStorage.getItem('authToken') }
-    })
-    .then(res => res.json())
-    .then(() => fetchTrainings());
-  }
+    row.innerHTML = `
+      <td class="checkbox-cell"><input type="checkbox" class="session-check" onchange="toggleStatus(${training.id}, this.checked)" ${training.status === 'completed' ? 'checked' : ''}></td>
+      <td class="edit-cell">
+        <button class="btn-edit" onclick="location.href='edit.html?id=${training.id}'" title="Edit">✏️</button>
+      </td>
+      <td class="delete-cell"><button class="btn-delete" onclick="deleteTraining(${training.id})" title="Delete">🗑️</button></td>
+      <td>${training.name}</td>
+      <td>${new Date(training.schedule_date).toLocaleDateString()}</td>
+      <td class="duration">${training.duration}</td>
+      <td>${training.venue}</td>
+      <td class="participants">${training.number_of_participants}</td>
+      <td>${training.status}</td>
+    `;
+    tbody.appendChild(row);
+  });
+  updateSummary();
+}
 
-  function editTraining(training) {
-    const updated = { ...training, name: prompt("Update name", training.name) };
-    fetch('/api/trainings/update', {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-auth-token': localStorage.getItem('authToken')
-      },
-      body: JSON.stringify(updated)
-    })
-    .then(res => res.json())
-    .then(() => fetchTrainings());
-  }
+function deleteTraining(id) {
+  fetch(`/api/trainings/${id}`, {
+    method: 'DELETE',
+    headers: { 'x-auth-token': localStorage.getItem('authToken') }
+  })
+  .then(res => res.json())
+  .then(() => fetchTrainings());
+}
 
-  function toggleStatus(id, complete) {
-    fetch('/api/trainings/status', {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-auth-token': localStorage.getItem('authToken')
-      },
-      body: JSON.stringify({ training_id: id, status: complete ? 'completed' : 'pending' })
-    }).then(() => fetchTrainings());
-  }
+function toggleStatus(id, complete) {
+  fetch('/api/trainings/status', {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-auth-token': localStorage.getItem('authToken')
+    },
+    body: JSON.stringify({ training_id: id, status: complete ? 'completed' : 'pending' })
+  }).then(() => fetchTrainings());
+}
 
-  function updateSummary() {
-    const rows = document.querySelectorAll("tbody tr");
-    let total = 0, actual = 0;
-    rows.forEach(row => {
-      const participants = parseFloat(row.querySelector(".participants")?.textContent) || 0;
-      const duration = parseFloat(row.querySelector(".duration")?.textContent) || 0;
-      const isChecked = row.querySelector(".session-check")?.checked;
-      total += participants * duration;
-      if (isChecked) actual += participants * duration;
-    });
-    const percent = total ? ((actual / total) * 100).toFixed(1) : 0;
-    document.getElementById("summaryDisplay").textContent =
-      `Total Hours: ${total.toFixed(1)} | Actual Hours: ${actual.toFixed(1)} | Percentage: ${percent}%`;
-  }
+function updateSummary() {
+  const rows = document.querySelectorAll("tbody tr");
+  let total = 0, actual = 0;
+  rows.forEach(row => {
+    const participants = parseFloat(row.querySelector(".participants")?.textContent) || 0;
+    const duration = parseFloat(row.querySelector(".duration")?.textContent) || 0;
+    const isChecked = row.querySelector(".session-check")?.checked;
+    total += participants * duration;
+    if (isChecked) actual += participants * duration;
+  });
+  const percent = total ? ((actual / total) * 100).toFixed(1) : 0;
+  document.getElementById("summaryDisplay").textContent =
+    `Total Hours: ${total.toFixed(1)} | Actual Hours: ${actual.toFixed(1)} | Percentage: ${percent}%`;
+}
 
-  function shareTable() {
-    const email = prompt("Enter email to share training data:");
-    const startDate = prompt("Start Date (e.g., 01/Aug/2022):");
-    const endDate = prompt("End Date (e.g., 31/Aug/2022):");
-    if (!email || !startDate || !endDate) return;
+function shareTable() {
+  const email = prompt("Enter email to share training data:");
+  const startDate = prompt("Start Date (e.g., 01/Aug/2022):");
+  const endDate = prompt("End Date (e.g., 31/Aug/2022):");
+  if (!email || !startDate || !endDate) return;
 
-    fetch('/api/trainings/shareTrainingData', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-auth-token': localStorage.getItem('authToken')
-      },
-      body: JSON.stringify({ email, startDate, endDate })
-    })
-    .then(res => res.json())
-    .then(data => alert(data.msg || data.errors?.[0]?.msg));
-  }
+  fetch('/api/trainings/shareTrainingData', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-auth-token': localStorage.getItem('authToken')
+    },
+    body: JSON.stringify({ email, startDate, endDate })
+  })
+  .then(res => res.json())
+  .then(data => alert(data.msg || data.errors?.[0]?.msg));
+}
 
-  fetchTrainings();
+fetchTrainings();
 </script>
 </body>
 </html>
