@@ -12,6 +12,7 @@ const port = process.env.PORT || 5000;
 
 // Serve static files from the public directory
 app.use(express.static(path.join(__dirname, 'public')));
+app.use('/userFiles', express.static(path.join(__dirname, 'userFiles')));
 
 // Explicitly serve homepage.html at root
 app.get('/', (req, res) => {
@@ -21,6 +22,7 @@ app.get('/', (req, res) => {
 app.use('/api/users', require('./routes/api/users'));
 app.use('/api/trainings', require('./routes/api/trainings'));
 app.use('/api/trainings', require('./routes/api/shareTrainingData'));
+app.use('/api/files', require('./routes/api/files'));
 // app.use('/api/forms', require('./routes/api/forms'));
 // app.use('/api/responses', require('./routes/api/responses'));
 

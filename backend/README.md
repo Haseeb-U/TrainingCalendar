@@ -22,11 +22,9 @@ Welcome! This guide will help you set up the frontend for the Training Calendar 
 
 ---
 
-
 ## 2. Configure Environment Variables (.env)
 
 Before running the backend, you need to create a `.env` file in the `backend/` folder. This file stores sensitive configuration like database credentials, JWT secret, and email settings.
-
 
 **Important:**
 
@@ -154,7 +152,6 @@ Below are the main backend routes you will use, with simple explanations and cod
     }
   });
   ```
-
 
 #### 3. Change Password
 
@@ -349,7 +346,7 @@ Below are the main backend routes you will use, with simple explanations and cod
 
 ---
 
-### **C. Share Training Data **
+### **C. Share Training Data**
 
 - **Endpoint:** `POST /api/trainings/shareTrainingData`
 - **Purpose:** Email your training data as a CSV file to any email address, filtered by a date range.
@@ -383,6 +380,47 @@ Below are the main backend routes you will use, with simple explanations and cod
 
 ---
 
+### **D. File Upload & Management Routes**
+
+#### 1. Upload a File
+
+- **Endpoint:** `POST /api/files/upload`
+- **Purpose:** Upload a file for the logged-in user.
+- **Headers:** `'x-auth-token': <your token>`
+- **Form Data:** Use `multipart/form-data` with a field named `file`.
+- **Example:**
+  ```js
+  const formData = new FormData();
+  formData.append('file', fileInput.files[0]);
+  fetch('/api/files/upload', {
+    method: 'POST',
+    headers: {
+      'x-auth-token': localStorage.getItem('authToken')
+    },
+    body: formData
+  })
+  .then(res => res.json())
+  .then(data => alert(data.msg || data.errors?.[0]?.msg));
+  ```
+
+#### 2. Get My Files
+
+- **Endpoint:** `GET /api/files/my-files`
+- **Purpose:** List all files uploaded by the logged-in user.
+- **Headers:** `'x-auth-token': <your token>`
+- **Example:**
+  ```js
+  fetch('/api/files/my-files', {
+    headers: {
+      'x-auth-token': localStorage.getItem('authToken')
+    }
+  })
+  .then(res => res.json())
+  .then(data => console.log(data));
+  ```
+
+---
+
 ## 5. General Tips
 
 - **Always check responses** for errors and show friendly messages to users.
@@ -406,6 +444,4 @@ Below are the main backend routes you will use, with simple explanations and cod
 - Start the backend before testing your frontend.
 - Use relative URLs for all API calls.
 - Include the JWT token for protected routes.
-- Handle errors gracefully.
-
-Happy coding!
+- Handle
