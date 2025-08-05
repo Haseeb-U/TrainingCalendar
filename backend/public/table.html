@@ -153,14 +153,15 @@
 <body>
 
 <nav>
-  <div class="nav-title">Training Need Assessment</div>
+  <div class="nav-title">Training Horizon</div>
   <div class="nav-links">
     <a href="table.html">My Trainings</a>
     <a href="main.html">Calendar</a>
+    <a href="records.html">Records</a>
     <div class="dropdown">
       <span class="dropdown-btn">User</span>
       <div class="dropdown-content">
-        <a href="#">Profile</a>
+        <a href="profile.html">Profile</a>
         <a href="homepage.html">Logout</a>
       </div>
     </div>
@@ -201,6 +202,16 @@
   </table>
 </div>
 <script>
+function formatDateToLocal(dateStr) {
+  if (!dateStr) return '';
+  let date = new Date(dateStr);
+  if (isNaN(date.getTime())) {
+    date = new Date(dateStr + 'T00:00:00Z');
+  }
+  if (isNaN(date.getTime())) return '';
+  return date.toLocaleDateString();
+}
+
 async function fetchTrainings() {
   const res = await fetch('/api/trainings/my-trainings', {
     headers: { 'x-auth-token': localStorage.getItem('authToken') }
@@ -221,7 +232,7 @@ async function fetchTrainings() {
       </td>
       <td class="delete-cell"><button class="btn-delete" onclick="deleteTraining(${training.id})" title="Delete">🗑️</button></td>
       <td>${training.name}</td>
-      <td>${new Date(training.schedule_date).toLocaleDateString()}</td>
+      <td>${formatDateToLocal(training.schedule_date)}</td>
       <td class="duration">${training.duration}</td>
       <td>${training.venue}</td>
       <td class="participants">${training.number_of_participants}</td>

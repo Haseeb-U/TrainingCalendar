@@ -16,7 +16,6 @@
       padding: 0;
     }
 
-    /* Navbar */
     nav {
       background-color: #1e1e1e;
       padding: 16px 32px;
@@ -80,14 +79,13 @@
       display: block;
     }
 
-    /* Profile Container */
     .container {
       max-width: 600px;
       margin: 60px auto;
       background-color: #161b22;
       padding: 30px;
       border-radius: 12px;
-      box-shadow: 0 0 15px white; /* White shadow around container */
+      box-shadow: 0 0 15px white;
     }
 
     .profile-header {
@@ -121,8 +119,8 @@
     }
 
     .change-password button {
-      background-color: #03c988; /* original background */
-      color: white; /* only text color changed */
+      background-color: #03c988;
+      color: white;
       border: none;
       padding: 12px 24px;
       font-size: 16px;
@@ -136,24 +134,61 @@
     .change-password button:hover {
       box-shadow: 0 0 12px #ffffff;
     }
+
+    /* Modal */
+    #passwordModal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background-color: rgba(0,0,0,0.7);
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+
+    .modal-content {
+      background-color: #1e1e1e;
+      padding: 20px;
+      border-radius: 8px;
+      width: 90%;
+      max-width: 400px;
+    }
+
+    .modal-content input {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+      background-color: #121212;
+      border: 1px solid #555;
+      color: white;
+      border-radius: 6px;
+    }
+
+    .modal-content button {
+      margin-top: 15px;
+      width: 100%;
+    }
   </style>
 </head>
 <body>
 
   <!-- Navbar -->
   <nav>
-    <div class="nav-title">Training Need Assessment</div>
-    <div class="nav-links">
-      <a href="table.html">My Trainings</a>
-      <div class="dropdown">
-        <span class="dropdown-btn">User</span>
-        <div class="dropdown-content">
-          <a href="#">Profile</a>
-          <a href="homepage.html">Logout</a>
-        </div>
+  <div class="nav-title">Training Horizon</div>
+  <div class="nav-links">
+    <a href="table.html">My Trainings</a>
+    <a href="main.html">Calendar</a>
+    <a href="records.html">Records</a>
+    <div class="dropdown">
+      <span class="dropdown-btn">User</span>
+      <div class="dropdown-content">
+        <a href="profile.html">Profile</a>
+        <a href="homepage.html">Logout</a>
       </div>
     </div>
-  </nav>
+  </div>
+</nav>
 
   <!-- Profile Container -->
   <div class="container">
@@ -161,23 +196,83 @@
 
     <div class="info">
       <label>Name</label>
-      <span>John Doe</span>
+      <span id="user-name">Loading...</span>
     </div>
 
     <div class="info">
       <label>Email</label>
-      <span>johndoe@example.com</span>
+      <span id="user-email">Loading...</span>
     </div>
 
     <div class="info">
       <label>Employee ID</label>
-      <span>EMP123456</span>
+      <span id="user-id">Loading...</span>
     </div>
 
     <div class="change-password">
-      <button>Change Password</button>
+      <button onclick="openPasswordModal()">Change Password</button>
     </div>
   </div>
 
+  <!-- Password Modal -->
+  <div id="passwordModal">
+    <div class="modal-content">
+      <h3 style="text-align:center; color:#03c988;">Change Password</h3>
+      <input type="password" id="oldPassword" placeholder="Current Password" />
+      <input type="password" id="newPassword" placeholder="New Password" />
+      <button onclick="changePassword()">Submit</button>
+      <button onclick="closePasswordModal()" style="margin-top:10px;background-color:#2a2e35;">Cancel</button>
+    </div>
+  </div>
+
+  <script>
+    // Fetch user profile
+    fetch('/api/users/profile', {
+      headers: {
+        'x-auth-token': localStorage.getItem('authToken')
+      }
+    })
+    .then(res => res.json())
+    .then(data => {
+      document.getElementById('user-name').innerText = data.name;
+      document.getElementById('user-email').innerText = data.email;
+      document.getElementById('user-id').innerText = data.employee_no;
+    })
+    .catch(err => {
+      alert("Failed to load profile");
+      console.error(err);
+    });
+
+    function openPasswordModal() {
+      document.getElementById('passwordModal').style.display = 'flex';
+    }
+
+    function closePasswordModal() {
+      document.getElementById('passwordModal').style.display = 'none';
+    }
+
+    function changePassword() {
+      const password = document.getElementById('oldPassword').value;
+      const newPassword = document.getElementById('newPassword').value;
+
+      fetch('/api/users/change-password', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-auth-token': localStorage.getItem('authToken')
+        },
+        body: JSON.stringify({ password, newPassword })
+      })
+      .then(res => res.json())
+      .then(data => {
+        alert(data.msg || data.errors?.[0]?.msg || 'Password updated');
+        closePasswordModal();
+      })
+      .catch(err => {
+        alert('Password update failed');
+        console.error(err);
+      });
+    }
+  </script>
 </body>
 </html>

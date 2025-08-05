@@ -5,9 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Create Session</title>
   <style>
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     body {
       background-color: #121212;
@@ -24,17 +22,12 @@
       justify-content: space-between;
       align-items: center;
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-      position: relative;
     }
 
     .nav-title {
       font-size: 20px;
       font-weight: bold;
       color: #03c988;
-    }
-
-    .nav-links {
-      position: relative;
     }
 
     .nav-links a, .dropdown-btn {
@@ -45,14 +38,9 @@
       cursor: pointer;
     }
 
-    .nav-links a:hover, .dropdown-btn:hover {
-      color: #03c988;
-    }
+    .nav-links a:hover, .dropdown-btn:hover { color: #03c988; }
 
-    .dropdown {
-      position: relative;
-      display: inline-block;
-    }
+    .dropdown { position: relative; display: inline-block; }
 
     .dropdown-content {
       display: none;
@@ -118,9 +106,7 @@
       filter: invert(1);
     }
 
-    .email-list input {
-      margin-bottom: 10px;
-    }
+    .email-list input { margin-bottom: 10px; }
 
     button {
       background-color: #03c988;
@@ -154,35 +140,30 @@
 </head>
 <body>
 
-  <!-- Navigation bar with dropdown -->
-  <nav>
-    <div class="nav-title">Training Need Assessment</div>
-    <div class="nav-links">
-      <a href="table.html">My Trainings</a>
-      <a href="main.html">Calendar</a>
-      <div class="dropdown">
-        <span class="dropdown-btn">User</span>
-        <div class="dropdown-content">
-          <a href="#">Profile</a>
-          <a href="homepage.html">Logout</a>
-        </div>
+ <nav>
+  <div class="nav-title">Training Horizon</div>
+  <div class="nav-links">
+    <a href="table.html">My Trainings</a>
+    <a href="main.html">Calendar</a>
+    <a href="records.html">Records</a>
+    <div class="dropdown">
+      <span class="dropdown-btn">User</span>
+      <div class="dropdown-content">
+        <a href="profile.html">Profile</a>
+        <a href="homepage.html">Logout</a>
       </div>
     </div>
-  </nav>
-
-  <!-- Page title -->
+  </div>
+</nav>
   <div class="page-title">Create Session</div>
 
-  <!-- Form container -->
   <div class="form-container">
     <form id="sessionForm">
 
       <label for="dateInput">Date:</label>
       <input type="text" id="dateInput" name="date" placeholder="dd,Month,yyyy" required readonly
              onclick="document.getElementById('realDate').showPicker()">
-
-      <input type="date" id="realDate" style="display:none" required
-             onchange="updateDateInput()">
+      <input type="date" id="realDate" style="display:none" required onchange="updateDateInput()">
 
       <label for="name">Session Name:</label>
       <input list="sessionNames" id="name" name="name" required>
@@ -223,19 +204,16 @@
   </div>
 
   <script>
-    // Update visible date input when hidden date input changes
     function updateDateInput() {
       const realDate = document.getElementById('realDate');
       const dateInput = document.getElementById('dateInput');
       if (realDate.value) {
-        // Format date as "dd,Month,yyyy"
         const dateObj = new Date(realDate.value);
         const options = { day: '2-digit', month: 'long', year: 'numeric' };
         dateInput.value = dateObj.toLocaleDateString('en-GB', options).replace(/ /g, ',');
       }
     }
 
-    // Add another email input field
     function addEmailField() {
       const emailList = document.getElementById('emailList');
       const newInput = document.createElement('input');
@@ -247,7 +225,6 @@
       emailList.appendChild(newInput);
     }
 
-    // Handle form submission with fetch POST to API
     document.getElementById('sessionForm').addEventListener('submit', function(event) {
       event.preventDefault();
 
@@ -261,10 +238,9 @@
       const duration = Number(document.getElementById('duration').value);
       const participants = Number(document.getElementById('participants').value);
       const venue = document.getElementById('venue').value.trim();
-      const status = document.getElementById('status').value.toLowerCase(); // lowercase as in API example
+      const status = document.getElementById('status').value.toLowerCase();
       const hours = Number(document.getElementById('hours').value);
 
-      // Collect participant emails into an array
       const emailInputs = document.querySelectorAll('input[name="emails[]"]');
       const emails = [];
       for (const input of emailInputs) {
@@ -298,11 +274,11 @@
       })
       .then(res => res.json())
       .then(data => {
-        alert(data.msg || (data.errors && data.errors[0].msg) || 'Unknown response');
-        if(data.msg) {
-          // Optionally, clear form or redirect after success
-          document.getElementById('sessionForm').reset();
-          document.getElementById('dateInput').value = '';
+        if (data.msg) {
+          // ✅ Form successfully submitted — now redirect to table.html
+          window.location.href = 'table.html';
+        } else {
+          alert(data.msg || (data.errors && data.errors[0].msg) || 'Unknown error');
         }
       })
       .catch(err => {

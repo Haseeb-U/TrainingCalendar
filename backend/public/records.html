@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Photo Gallery</title>
+
+  <!-- Flatpickr CSS for datepicker -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #0d1117;
+      color: white;
+      padding: 0;
+    }
+
+    nav {
+      background-color: #1e1e1e;
+      padding: 16px 32px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+      position: relative;
+    }
+
+    .nav-title {
+      font-size: 20px;
+      font-weight: bold;
+      color: #03c988;
+    }
+
+    .nav-links {
+      position: relative;
+    }
+
+    .nav-links a, .dropdown-btn {
+      margin-left: 20px;
+      text-decoration: none;
+      color: #d1d5db;
+      font-weight: 500;
+      cursor: pointer;
+    }
+
+    .nav-links a:hover, .dropdown-btn:hover {
+      color: #03c988;
+    }
+
+    .dropdown {
+      position: relative;
+      display: inline-block;
+    }
+
+    .dropdown-content {
+      display: none;
+      position: absolute;
+      background-color: #1e1e1e;
+      min-width: 120px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      z-index: 1;
+      right: 0;
+    }
+
+    .dropdown-content a {
+      color: #d1d5db;
+      padding: 10px 16px;
+      text-decoration: none;
+      display: block;
+    }
+
+    .dropdown-content a:hover {
+      background-color: #2a2e35;
+      color: #03c988;
+    }
+
+    .dropdown:hover .dropdown-content {
+      display: block;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 60px auto;
+      background-color: #161b22;
+      padding: 30px 20px;
+      border-radius: 12px;
+      box-shadow: 0 0 15px white;
+    }
+
+    .profile-header {
+      font-size: 26px;
+      font-weight: bold;
+      margin-bottom: 30px;
+      text-align: center;
+      color: #34d399;
+    }
+
+    input[type="file"] {
+      margin-bottom: 20px;
+      background-color: #121212;
+      color: white;
+      padding: 10px;
+      border: 1px solid #444;
+      border-radius: 6px;
+      width: 70%;
+    }
+
+    button.upload-btn {
+      background-color: #03c988;
+      color: white;
+      padding: 10px 25px;
+      font-weight: bold;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      box-shadow: 0 0 8px white;
+      margin-left: 10px;
+      transition: box-shadow 0.3s ease;
+    }
+
+    button.upload-btn:hover {
+      box-shadow: 0 0 12px #ffffff;
+    }
+
+    #photoGallery {
+      margin-top: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .image-block {
+      background-color: #1e1e1e;
+      border-radius: 10px;
+      padding: 10px 15px;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      box-shadow: 0 0 8px rgba(255 255 255 / 0.15);
+    }
+
+    .image-block img {
+      width: 100px;
+      height: 100px;
+      border-radius: 8px;
+      object-fit: cover;
+      border: 2px solid #2a2e35;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .image-info {
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .date-picker {
+      width: 150px;
+      padding: 6px 8px;
+      border-radius: 6px;
+      border: 1px solid #444;
+      background-color: #121212;
+      color: white;
+      font-weight: 600;
+      font-size: 14px;
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    .title-input {
+      width: 100%;
+      max-width: 350px;
+      padding: 6px 10px;
+      border-radius: 6px;
+      border: 1px solid #444;
+      background-color: #121212;
+      color: white;
+      font-weight: 600;
+      font-size: 14px;
+      font-family: 'Segoe UI', sans-serif;
+      outline-offset: 1px;
+    }
+
+    .label {
+      font-size: 13px;
+      color: #03c988;
+      font-weight: 600;
+      user-select: none;
+    }
+
+    /* Modal styles */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.85);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+    }
+
+    .modal-content {
+      position: relative;
+      max-width: 90vw;
+      max-height: 90vh;
+      background-color: #161b22;
+      border-radius: 12px;
+      box-shadow: 0 0 20px white;
+      padding: 15px;
+    }
+
+    .modal-content img {
+      max-width: 100%;
+      max-height: 80vh;
+      border-radius: 8px;
+      display: block;
+      margin: 0 auto;
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: #03c988;
+      border: none;
+      border-radius: 50%;
+      color: black;
+      font-weight: bold;
+      width: 28px;
+      height: 28px;
+      cursor: pointer;
+      font-size: 20px;
+      line-height: 20px;
+      text-align: center;
+      user-select: none;
+    }
+
+  </style>
+
+</head>
+<body>
+
+  <!-- Navbar -->
+ <nav>
+  <div class="nav-title">Training Horizon</div>
+  <div class="nav-links">
+    <a href="table.html">My Trainings</a>
+    <a href="main.html">Calendar</a>
+    <a href="records.html">Records</a>
+    <div class="dropdown">
+      <span class="dropdown-btn">User</span>
+      <div class="dropdown-content">
+        <a href="profile.html">Profile</a>
+        <a href="homepage.html">Logout</a>
+      </div>
+    </div>
+  </div>
+</nav>
+
+  <!-- Container -->
+  <div class="container">
+    <div class="profile-header">Upload and View Photos</div>
+
+    <div style="display: flex; align-items: center;">
+      <input type="file" id="fileInput" accept="image/*" />
+      <button class="upload-btn" onclick="uploadFile()">Upload</button>
+    </div>
+
+    <div id="photoGallery"></div>
+  </div>
+
+  <!-- Modal for image preview -->
+  <div id="modal" class="modal-overlay" style="display:none;">
+    <div class="modal-content">
+      <button class="modal-close" onclick="closeModal()">×</button>
+      <img id="modalImage" src="" alt="Large preview" />
+    </div>
+  </div>
+
+  <!-- Flatpickr JS -->
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
+  <script>
+    function uploadFile() {
+      const fileInput = document.getElementById('fileInput');
+      if (!fileInput.files.length) {
+        alert("Please select an image.");
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('file', fileInput.files[0]);
+
+      fetch('/api/files/upload', {
+        method: 'POST',
+        headers: {
+          'x-auth-token': localStorage.getItem('authToken')
+        },
+        body: formData
+      })
+      .then(res => res.json())
+      .then(data => {
+        alert(data.msg || data.errors?.[0]?.msg || "Uploaded");
+        fileInput.value = '';
+        fetchFiles(); // refresh gallery
+      })
+      .catch(err => {
+        alert("Upload failed");
+        console.error(err);
+      });
+    }
+
+    // Keep track of files with temp info for title and date changes
+    let filesCache = [];
+
+    function fetchFiles() {
+      fetch('/api/files/my-files', {
+        headers: {
+          'x-auth-token': localStorage.getItem('authToken')
+        }
+      })
+      .then(res => res.json())
+      .then(data => {
+        filesCache = data.map(f => ({
+          ...f,
+          _title: f.title || '',
+          _date: f.uploaded_at || f.createdAt || f.timestamp || f.date || new Date().toISOString(),
+        }));
+
+        // Sort descending by date before displaying
+        filesCache.sort((a,b) => new Date(b._date) - new Date(a._date));
+
+        displayPhotos(filesCache);
+      })
+      .catch(err => {
+        alert("Failed to load photos");
+        console.error(err);
+      });
+    }
+
+    // Format date as dd/Mon/yyyy (e.g. 05/Aug/2025)
+    function formatDateCustom(dateString) {
+      const d = new Date(dateString);
+      const day = d.getDate().toString().padStart(2, '0');
+      const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
+                          "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+      const month = monthNames[d.getMonth()];
+      const year = d.getFullYear();
+      return `${day}/${month}/${year}`;
+    }
+
+    // Update the filesCache when user edits title or date
+    function updateFileTitle(index, newTitle) {
+      filesCache[index]._title = newTitle;
+      // You can add backend save here if needed
+    }
+
+    function updateFileDate(index, newDate) {
+      filesCache[index]._date = newDate;
+
+      // Sort descending by updated date
+      filesCache.sort((a, b) => new Date(b._date) - new Date(a._date));
+
+      // Re-render gallery to update order
+      displayPhotos(filesCache);
+    }
+
+    // Modal open and close
+    function openModal(src) {
+      document.getElementById('modalImage').src = src;
+      document.getElementById('modal').style.display = 'flex';
+    }
+
+    function closeModal() {
+      document.getElementById('modal').style.display = 'none';
+      document.getElementById('modalImage').src = '';
+    }
+
+    function displayPhotos(files) {
+      const gallery = document.getElementById('photoGallery');
+      gallery.innerHTML = '';
+
+      files.forEach((file, index) => {
+        // Create block container
+        const block = document.createElement('div');
+        block.className = 'image-block';
+
+        // Image element
+        const img = document.createElement('img');
+        img.src = file.url || `${window.location.origin}/userFiles/${file.filename}`;
+        img.alt = file._title || "Uploaded image";
+        img.title = "Click to view larger";
+        img.addEventListener('click', () => openModal(img.src));
+
+        // Info container: date picker and title input
+        const info = document.createElement('div');
+        info.className = 'image-info';
+
+        // Date label and input
+        const dateLabel = document.createElement('label');
+        dateLabel.className = 'label';
+        dateLabel.innerText = "Date:";
+
+        const dateInput = document.createElement('input');
+        dateInput.type = 'text'; // flatpickr works on text input
+        dateInput.className = 'date-picker';
+        dateInput.value = formatDateCustom(file._date);
+
+        flatpickr(dateInput, {
+          dateFormat: "d/M/Y",
+          defaultDate: file._date,
+          onChange: (selectedDates) => {
+            if(selectedDates.length) {
+              updateFileDate(index, selectedDates[0].toISOString());
+            }
+          }
+        });
+
+        // Title label and input
+        const titleLabel = document.createElement('label');
+        titleLabel.className = 'label';
+        titleLabel.innerText = "Title:";
+
+        const titleInput = document.createElement('input');
+        titleInput.type = 'text';
+        titleInput.className = 'title-input';
+        titleInput.placeholder = "Enter title";
+        titleInput.value = file._title;
+        titleInput.addEventListener('input', e => updateFileTitle(index, e.target.value));
+
+        // Append elements to info div
+        info.appendChild(dateLabel);
+        info.appendChild(dateInput);
+        info.appendChild(titleLabel);
+        info.appendChild(titleInput);
+
+        // Append image and info to block
+        block.appendChild(img);
+        block.appendChild(info);
+
+        // Add block to gallery
+        gallery.appendChild(block);
+      });
+    }
+
+    // Initial fetch of images
+    fetchFiles();
+  </script>
+</body>
+</html>
