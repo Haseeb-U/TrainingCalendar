@@ -168,6 +168,32 @@
     .modal-content button {
       margin-top: 15px;
       width: 100%;
+      padding: 12px 24px;
+      font-size: 16px;
+      font-weight: bold;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      transition: box-shadow 0.3s;
+    }
+
+    .modal-content button:first-of-type {
+      background-color: #03c988;
+      color: white;
+      box-shadow: 0 0 8px white;
+    }
+
+    .modal-content button:first-of-type:hover {
+      box-shadow: 0 0 12px #ffffff;
+    }
+
+    .modal-content button:last-of-type {
+      background-color: #2a2e35;
+      color: white;
+    }
+
+    .modal-content button:last-of-type:hover {
+      background-color: #3a3e45;
     }
   </style>
 </head>
@@ -184,7 +210,7 @@
       <span class="dropdown-btn">User</span>
       <div class="dropdown-content">
         <a href="profile.html">Profile</a>
-        <a href="homepage.html">Logout</a>
+        <a href="#" onclick="logout(); return false;">Logout</a>
       </div>
     </div>
   </div>
@@ -221,17 +247,13 @@
       <input type="password" id="oldPassword" placeholder="Current Password" />
       <input type="password" id="newPassword" placeholder="New Password" />
       <button onclick="changePassword()">Submit</button>
-      <button onclick="closePasswordModal()" style="margin-top:10px;background-color:#2a2e35;">Cancel</button>
+      <button onclick="closePasswordModal()">Cancel</button>
     </div>
   </div>
 
   <script>
     // Fetch user profile
-    fetch('/api/users/profile', {
-      headers: {
-        'x-auth-token': localStorage.getItem('authToken')
-      }
-    })
+    authenticatedFetch('/api/users/profile')
     .then(res => res.json())
     .then(data => {
       document.getElementById('user-name').innerText = data.name;
@@ -239,7 +261,7 @@
       document.getElementById('user-id').innerText = data.employee_no;
     })
     .catch(err => {
-      alert("Failed to load profile");
+      showError("Failed to load profile", "Profile Error");
       console.error(err);
     });
 
@@ -255,24 +277,39 @@
       const password = document.getElementById('oldPassword').value;
       const newPassword = document.getElementById('newPassword').value;
 
-      fetch('/api/users/change-password', {
+      authenticatedFetch('/api/users/change-password', {
         method: 'PATCH',
         headers: {
-          'Content-Type': 'application/json',
-          'x-auth-token': localStorage.getItem('authToken')
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({ password, newPassword })
       })
       .then(res => res.json())
       .then(data => {
-        alert(data.msg || data.errors?.[0]?.msg || 'Password updated');
+        if (data.msg || (data.errors && data.errors.length === 0)) {
+          showSuccess(data.msg || 'Password updated successfully', 'Password Changed');
+        } else {
+          showError(data.errors?.[0]?.msg || 'Password update failed', 'Update Failed');
+        }
         closePasswordModal();
       })
       .catch(err => {
-        alert('Password update failed');
+        showError('Password update failed', 'Update Error');
         console.error(err);
       });
     }
+  </script>
+
+  <script src="utils/auth.js"></script>
+  <script src="utils/notifications.js"></script>
+  <script>
+    // Check authentication when page loads
+    if (!requireAuth()) {
+      // User will be redirected by requireAuth() if not authenticated
+    }
+    
+    // Verify token validity
+    verifyTokenValidity();
   </script>
 </body>
 </html>

@@ -139,6 +139,7 @@
     </div>
   </div>
 
+  <script src="utils/notifications.js"></script>
   <script>
     document.getElementById('loginForm').addEventListener('submit', function(event) {
       event.preventDefault(); // Prevent form default submit
@@ -155,17 +156,24 @@
         const data = await res.json();
         if (res.ok && data.token) {
           localStorage.setItem('authToken', data.token);
-          alert('Login successful!');
-          window.location.href = 'main.html';
+          showSuccess('Login successful! Redirecting...', 'Welcome Back');
+          setTimeout(() => {
+            window.location.href = 'main.html';
+          }, 1500);
         } else {
-          alert(data.errors?.[0]?.msg || 'Invalid email or password');
+          showError(data.errors?.[0]?.msg || 'Invalid email or password', 'Login Failed');
         }
       })
       .catch(err => {
         console.error('Login failed:', err);
-        alert('Something went wrong. Please try again.');
+        showError('Something went wrong. Please try again.', 'Connection Error');
       });
     });
+
+    // Check if user is already logged in and redirect to main page
+    if (localStorage.getItem('authToken') || sessionStorage.getItem('authToken')) {
+      window.location.href = 'main.html';
+    }
   </script>
 </body>
 </html>

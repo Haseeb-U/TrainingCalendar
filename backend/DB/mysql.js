@@ -40,7 +40,7 @@ async function initDatabase() {
   `);
 
   await db.query(`
-    CREATE TABLE IF NOT EXISTS Trainings (
+    CREATE TABLE IF NOT EXISTS trainings (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     duration INT NOT NULL,

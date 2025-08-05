@@ -1,5 +1,6 @@
 const { initDatabase } = require('../DB/mysql');
 const { sendTrainingNotification } = require('./email');
+const { formatDateConsistent } = require('../utils/dateFormatter');
 
 async function sendReminders() {
   console.log('=== REMINDER FUNCTION STARTED ===');
@@ -40,7 +41,8 @@ async function sendReminders() {
     }
 
     const subject = `Upcoming Training: ${training.name}`;
-    const text = `Reminder: The training "${training.name}" is scheduled on ${training.schedule_date}.`;
+    const formattedDate = formatDateConsistent(training.schedule_date);
+    const text = `Reminder: The training "${training.name}" is scheduled on ${formattedDate}.`;
 
     try {
       await sendTrainingNotification(recipients.join(','), subject, text);

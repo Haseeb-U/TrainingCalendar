@@ -118,17 +118,26 @@
       .then(res => res.json())
       .then(data => {
         if (data.msg) {
-          alert('Registered successfully!');
-          window.location.href = 'login.html';
+          showSuccess('Registered successfully! Redirecting to login...', 'Registration Complete');
+          setTimeout(() => {
+            window.location.href = 'login.html';
+          }, 2000);
         } else {
-          alert(data.errors?.[0]?.msg || 'Registration failed.');
+          showError(data.errors?.[0]?.msg || 'Registration failed.', 'Registration Failed');
         }
       })
       .catch(err => {
         console.error('Registration failed:', err);
-        alert('Something went wrong. Please try again.');
+        showError('Something went wrong. Please try again.', 'Connection Error');
       });
     });
+
+    // Check if user is already logged in and redirect to main page
+    if (localStorage.getItem('authToken') || sessionStorage.getItem('authToken')) {
+      window.location.href = 'main.html';
+    }
   </script>
+
+  <script src="utils/notifications.js"></script>
 </body>
 </html>

@@ -449,7 +449,7 @@ Below are the main backend routes you will use, with simple explanations and cod
     "endDate": "20/Jul/2022"
   }
   ```
-  - `startDate` and `endDate` must be in `DD/MMM/YYYY` format (e.g., `13/Jul/2022`).
+  - `startDate` and `endDate` must be in `d/MMM/yyyy` format (e.g., `1/Jan/2025`).
 - **Example:**
   ```js
   fetch('/api/trainings/shareTrainingData', {

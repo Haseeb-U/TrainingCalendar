@@ -150,7 +150,7 @@
       <span class="dropdown-btn">User</span>
       <div class="dropdown-content">
         <a href="profile.html">Profile</a>
-        <a href="homepage.html">Logout</a>
+        <a href="#" onclick="logout(); return false;">Logout</a>
       </div>
     </div>
   </div>
@@ -203,14 +203,14 @@
     </form>
   </div>
 
+  <script src="utils/dateFormatter.js"></script>
   <script>
     function updateDateInput() {
       const realDate = document.getElementById('realDate');
       const dateInput = document.getElementById('dateInput');
       if (realDate.value) {
         const dateObj = new Date(realDate.value);
-        const options = { day: '2-digit', month: 'long', year: 'numeric' };
-        dateInput.value = dateObj.toLocaleDateString('en-GB', options).replace(/ /g, ',');
+        dateInput.value = formatDateConsistent(dateObj);
       }
     }
 
@@ -230,7 +230,7 @@
 
       const realDate = document.getElementById('realDate').value;
       if (!realDate) {
-        alert('Please select a valid date.');
+        showWarning('Please select a valid date.', 'Date Required');
         return;
       }
 
@@ -249,7 +249,7 @@
       }
 
       if (emails.length === 0) {
-        alert('Please enter at least one participant email.');
+        showWarning('Please enter at least one participant email.', 'Email Required');
         return;
       }
 
@@ -268,7 +268,7 @@
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-auth-token': localStorage.getItem('authToken')
+          'x-auth-token': getAuthToken()
         },
         body: JSON.stringify(payload)
       })
@@ -276,16 +276,30 @@
       .then(data => {
         if (data.msg) {
           // ✅ Form successfully submitted — now redirect to table.html
-          window.location.href = 'table.html';
+          showSuccess('Training session created successfully! Redirecting...', 'Session Created');
+          setTimeout(() => {
+            window.location.href = 'table.html';
+          }, 1500);
         } else {
-          alert(data.msg || (data.errors && data.errors[0].msg) || 'Unknown error');
+          showError(data.msg || (data.errors && data.errors[0].msg) || 'Unknown error', 'Creation Failed');
         }
       })
       .catch(err => {
-        alert('Error submitting form: ' + err.message);
+        showError('Error submitting form: ' + err.message, 'Submission Error');
       });
     });
   </script>
 
+  <script src="utils/auth.js"></script>
+  <script src="utils/notifications.js"></script>
+  <script>
+    // Check authentication when page loads
+    if (!requireAuth()) {
+      // User will be redirected by requireAuth() if not authenticated
+    }
+    
+    // Verify token validity
+    verifyTokenValidity();
+  </script>
 </body>
 </html>

@@ -1,6 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const path = require('path');
+const fs = require('fs');
 const { initDatabase } = require('./DB/mysql');
 const cron = require('node-cron');
 const { sendReminders } = require('./mail/sendTrainingReminders');
@@ -9,6 +10,13 @@ const app = express();
 app.use(express.json());
 
 const port = process.env.PORT || 5000;
+
+// Create userFiles directory if it doesn't exist
+const userFilesDir = path.join(__dirname, 'userFiles');
+if (!fs.existsSync(userFilesDir)) {
+  fs.mkdirSync(userFilesDir, { recursive: true });
+  console.log('userFiles directory created');
+}
 
 // Serve static files from the public directory
 app.use(express.static(path.join(__dirname, 'public')));
