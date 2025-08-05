@@ -380,7 +380,7 @@
       <span class="dropdown-btn">User</span>
       <div class="dropdown-content">
         <a href="profile.html">Profile</a>
-        <a href="#" onclick="logout(); return false;">Logout</a>
+        <a href="homepage.html">Logout</a>
       </div>
     </div>
   </div>
@@ -437,7 +437,7 @@
       fetch('/api/files/upload', {
         method: 'POST',
         headers: {
-          'x-auth-token': getAuthToken()
+          'x-auth-token': localStorage.getItem('authToken')
         },
         body: formData
       })
@@ -469,7 +469,11 @@
     let filesCache = [];
 
     function fetchFiles() {
-      authenticatedFetch('/api/files/my-files')
+      fetch('/api/files/my-files', {
+        headers: {
+          'x-auth-token': localStorage.getItem('authToken')
+        }
+      })
       .then(res => {
         if (!res.ok) {
           throw new Error(`HTTP ${res.status}: ${res.statusText}`);
@@ -499,7 +503,7 @@
       fetch(`/api/files/delete/${fileId}`, {
         method: 'DELETE',
         headers: {
-          'x-auth-token': getAuthToken()
+          'x-auth-token': localStorage.getItem('authToken')
         }
       })
       .then(res => {
@@ -634,17 +638,6 @@
 
     // Initial fetch of files
     fetchFiles();
-  </script>
-  
-  <script src="utils/auth.js"></script>
-  <script>
-    // Check authentication when page loads
-    if (!requireAuth()) {
-      // User will be redirected by requireAuth() if not authenticated
-    }
-    
-    // Verify token validity
-    verifyTokenValidity();
   </script>
 </body>
 </html>

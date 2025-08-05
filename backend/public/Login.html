@@ -169,11 +169,6 @@
         showError('Something went wrong. Please try again.', 'Connection Error');
       });
     });
-
-    // Check if user is already logged in and redirect to main page
-    if (localStorage.getItem('authToken') || sessionStorage.getItem('authToken')) {
-      window.location.href = 'main.html';
-    }
   </script>
 </body>
 </html>

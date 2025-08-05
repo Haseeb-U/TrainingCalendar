@@ -210,7 +210,7 @@
       <span class="dropdown-btn">User</span>
       <div class="dropdown-content">
         <a href="profile.html">Profile</a>
-        <a href="#" onclick="logout(); return false;">Logout</a>
+        <a href="homepage.html">Logout</a>
       </div>
     </div>
   </div>
@@ -253,7 +253,11 @@
 
   <script>
     // Fetch user profile
-    authenticatedFetch('/api/users/profile')
+    fetch('/api/users/profile', {
+      headers: {
+        'x-auth-token': localStorage.getItem('authToken')
+      }
+    })
     .then(res => res.json())
     .then(data => {
       document.getElementById('user-name').innerText = data.name;
@@ -277,10 +281,11 @@
       const password = document.getElementById('oldPassword').value;
       const newPassword = document.getElementById('newPassword').value;
 
-      authenticatedFetch('/api/users/change-password', {
+      fetch('/api/users/change-password', {
         method: 'PATCH',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'x-auth-token': localStorage.getItem('authToken')
         },
         body: JSON.stringify({ password, newPassword })
       })
@@ -300,16 +305,6 @@
     }
   </script>
 
-  <script src="utils/auth.js"></script>
   <script src="utils/notifications.js"></script>
-  <script>
-    // Check authentication when page loads
-    if (!requireAuth()) {
-      // User will be redirected by requireAuth() if not authenticated
-    }
-    
-    // Verify token validity
-    verifyTokenValidity();
-  </script>
 </body>
 </html>

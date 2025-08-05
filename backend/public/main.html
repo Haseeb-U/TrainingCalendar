@@ -181,7 +181,7 @@
       <span class="dropdown-btn">User</span>
       <div class="dropdown-content">
         <a href="profile.html">Profile</a>
-        <a href="#" onclick="logout(); return false;">Logout</a>
+        <a href="homepage.html">Logout</a>
       </div>
     </div>
   </div>
@@ -310,13 +310,16 @@
     // Fetch user name and inject it into welcome message
     async function loadUserName() {
       try {
-        const res = await authenticatedFetch('/api/users/profile');
+        const res = await fetch('/api/users/profile', {
+          headers: {
+            'x-auth-token': localStorage.getItem('authToken')
+          }
+        });
         if (!res.ok) throw new Error('Failed to fetch user info');
         const data = await res.json();
         document.getElementById('welcomeMessage').textContent = `Welcome, ${data.name}!`;
       } catch (err) {
         console.error('Error loading user name:', err);
-        // If there's an auth error, the authenticatedFetch will handle logout
       }
     }
 
@@ -325,16 +328,6 @@
     loadUserName();
   </script>
 
-  <script src="utils/auth.js"></script>
   <script src="utils/notifications.js"></script>
-  <script>
-    // Check authentication when page loads
-    if (!requireAuth()) {
-      // User will be redirected by requireAuth() if not authenticated
-    }
-    
-    // Verify token validity
-    verifyTokenValidity();
-  </script>
 </body>
 </html>

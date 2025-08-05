@@ -117,16 +117,17 @@
 
   // Fetch existing training data
   async function fetchTraining() {
-    try {
-      const res = await authenticatedFetch('/api/trainings/my-trainings');
-      const trainings = await res.json();
-      const training = trainings.find(t => t.id == trainingId);
-      if (!training) {
-        showError('Training not found. Redirecting...', 'Not Found');
-        setTimeout(() => {
-          window.location.href = 'table.html';
-        }, 2000);
-        return;
+    const res = await fetch('/api/trainings/my-trainings', {
+      headers: { 'x-auth-token': localStorage.getItem('authToken') }
+    });
+    const trainings = await res.json();
+    const training = trainings.find(t => t.id == trainingId);
+    if (!training) {
+      showError('Training not found. Redirecting...', 'Not Found');
+      setTimeout(() => {
+        window.location.href = 'table.html';
+      }, 2000);
+      return;
     }
 
     // Fill form fields
@@ -151,10 +152,6 @@
     }
 
     document.getElementById('status').value = training.status;
-    } catch (error) {
-      console.error('Error fetching training:', error);
-      // Error handling is done by authenticatedFetch
-    }
   }
 
   // Submit updated data
@@ -177,10 +174,11 @@
       status: document.getElementById('status').value,
     };
 
-    const res = await authenticatedFetch('/api/trainings/update', {
+    const res = await fetch('/api/trainings/update', {
       method: 'PATCH',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'x-auth-token': localStorage.getItem('authToken'),
       },
       body: JSON.stringify(updatedTraining),
     });
@@ -199,16 +197,6 @@
   fetchTraining();
 </script>
 
-<script src="utils/auth.js"></script>
 <script src="utils/notifications.js"></script>
-<script>
-  // Check authentication when page loads
-  if (!requireAuth()) {
-    // User will be redirected by requireAuth() if not authenticated
-  }
-  
-  // Verify token validity
-  verifyTokenValidity();
-</script>
 </body>
 </html>
