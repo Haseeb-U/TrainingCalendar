@@ -30,22 +30,114 @@ Before running the backend, you need to create a `.env` file in the `backend/` f
 
 - You must have a live MySQL database running and accessible with the credentials you provide in the `.env` file **before** starting the backend server. The backend will not work without a working database connection.
 
-**Steps:**
+### **Step-by-Step Instructions:**
 
-1. In the `backend/` folder, create a file named `.env` (no filename, just `.env`).
-2. Copy and paste the following sample content into your `.env` file, and update the values as needed:
-   ```env
-   MYSQL_HOST=localhost
-   MYSQL_USER=root
-   MYSQL_PASSWORD=root
-   MYSQL_DB_NAME=TrainingCalendarDB
-   JWT_SECRET=your_jwt_secret
-   PORT=5000
-   EMAIL_USER=your_email@gmail.com
-   EMAIL_PASS=your_email_password_or_app_password
-   ```
-   - Replace `your_jwt_secret` with a strong secret string.
-   - Replace `EMAIL_USER` and `EMAIL_PASS` with your email and password (or app password if using Gmail).
+#### **Step 1: Create the .env file**
+
+1. Navigate to the `backend/` folder in your project
+2. Create a new file named exactly `.env` (with no filename before the dot)
+   - **Windows:** Right-click in the folder → "New" → "Text Document" → Rename to `.env` (remove the .txt extension)
+   - **Mac/Linux:** Use terminal: `touch .env` or create via text editor
+3. Open the `.env` file in any text editor (VS Code, Notepad, etc.)
+
+#### **Step 2: Add Configuration Variables**
+
+Copy and paste the following template into your `.env` file:
+
+```env
+# Database Configuration
+MYSQL_HOST=localhost
+MYSQL_USER=root
+MYSQL_PASSWORD=your_database_password
+MYSQL_DB_NAME=TrainingCalendarDB
+
+# Server Configuration
+JWT_SECRET=your_super_secret_jwt_key_here_make_it_long_and_random
+PORT=5000
+
+# Email Configuration (Required for notifications and data sharing)
+EMAIL_USER=your_email@gmail.com
+EMAIL_PASS=your_app_password_here
+```
+
+#### **Step 3: Customize Each Variable**
+
+**Database Settings:**
+- `MYSQL_HOST`: Usually `localhost` if MySQL is on your computer, or your database server IP
+- `MYSQL_USER`: Your MySQL username (default is often `root`)
+- `MYSQL_PASSWORD`: Your MySQL password (leave empty if no password: `MYSQL_PASSWORD=`)
+- `MYSQL_DB_NAME`: Keep as `TrainingCalendarDB` (the app will create this database automatically)
+
+**Security Settings:**
+- `JWT_SECRET`: **CRITICAL!** Create a long, random string (at least 32 characters)
+  - Example: `JWT_SECRET=myApp2024SuperSecretKey987654321abcdef`
+  - You can generate one at: https://www.allkeysgenerator.com/Random/Security-Encryption-Key-Generator.aspx
+- `PORT`: Keep as `5000` unless you need a different port
+
+**Email Settings (Required for email features):**
+- `EMAIL_USER`: Your Gmail address (e.g., `john.doe@gmail.com`)
+- `EMAIL_PASS`: **NOT your regular Gmail password!** Use an App Password (see below)
+
+#### **Step 4: Set Up Gmail App Password (Important!)**
+
+For email functionality to work, you need a Gmail App Password:
+
+1. **Enable 2-Factor Authentication on your Gmail account:**
+   - Go to https://myaccount.google.com/security
+   - Turn on "2-Step Verification" if not already enabled
+
+2. **Generate an App Password:**
+   - Go to https://myaccount.google.com/apppasswords
+   - Select "Mail" and your device
+   - Google will generate a 16-character password like: `abcd efgh ijkl mnop`
+   - Use this password (without spaces) in your `.env` file: `EMAIL_PASS=abcdefghijklmnop`
+
+3. **Alternative: Use a different email provider**
+   - If you don't want to use Gmail, modify `backend/mail/email.js`
+   - Change the `service: 'gmail'` to your provider (Outlook, Yahoo, etc.)
+
+#### **Step 5: Sample Complete .env File**
+
+Here's what your completed `.env` file should look like:
+
+```env
+# Database Configuration
+MYSQL_HOST=localhost
+MYSQL_USER=root
+MYSQL_PASSWORD=mySecretDBPassword123
+MYSQL_DB_NAME=TrainingCalendarDB
+
+# Server Configuration
+JWT_SECRET=myTrainingApp2024SuperSecretJWTKey987654321randomString
+PORT=5000
+
+# Email Configuration
+EMAIL_USER=john.doe@gmail.com
+EMAIL_PASS=abcdefghijklmnop
+```
+
+### **Troubleshooting:**
+
+**Database Connection Issues:**
+- Make sure MySQL is installed and running
+- Test your database credentials using MySQL Workbench or command line
+- Check if the port is correct (MySQL default is 3306)
+
+**Email Issues:**
+- Verify your App Password is correct (16 characters, no spaces)
+- Make sure 2-Factor Authentication is enabled on Gmail
+- Check if "Less secure app access" is disabled (you should use App Passwords instead)
+
+**File Not Found Errors:**
+- Make sure the `.env` file is in the `backend/` folder, not the root folder
+- The file should be named exactly `.env` with no extension
+- The file should not be named `.env.txt` or `env`
+
+### **Security Notes:**
+- **Never commit your `.env` file to version control (Git)**
+- Add `.env` to your `.gitignore` file
+- Keep your JWT secret and email password private
+- Use different JWT secrets for development and production
 
 ---
 
@@ -67,9 +159,7 @@ Before running the backend, you need to create a `.env` file in the `backend/` f
 
 ---
 
----
-
-## 3. How to Connect Frontend to Backend
+## 4. How to Connect Frontend to Backend
 
 - **Use relative URLs** for API calls.  
   Example:
@@ -81,7 +171,7 @@ Before running the backend, you need to create a `.env` file in the `backend/` f
 
 ---
 
-## 4. Using Backend Services (API Routes)
+## 5. Using Backend Services (API Routes)
 
 Below are the main backend routes you will use, with simple explanations and code examples.
 
@@ -380,18 +470,42 @@ Below are the main backend routes you will use, with simple explanations and cod
 
 ---
 
-### **D. File Upload & Management Routes**
+### **D. Email Notifications**
+
+#### Automatic Training Reminders
+
+The system automatically sends email reminders for upcoming trainings:
+
+- **When:** Every day at 8:00 AM (server time)
+- **Who gets notified:** Recipients specified in the `notification_recipients` field when creating/updating a training
+- **What trainings:** Only pending trainings scheduled within the next 2 days
+- **Email content:** 
+  - Subject: "Upcoming Training: [Training Name]"
+  - Body: Reminder with training name and scheduled date
+- **Setup Required:** 
+  - Configure `EMAIL_USER` and `EMAIL_PASS` in your `.env` file
+  - The system uses Gmail by default (you can modify `mail/email.js` for other providers)
+
+**Note:** You don't need to call any API for this - it happens automatically. Just make sure to include valid email addresses in the `notification_recipients` array when creating trainings.
+
+---
+
+### **E. File Upload & Management Routes**
 
 #### 1. Upload a File
 
 - **Endpoint:** `POST /api/files/upload`
 - **Purpose:** Upload a file for the logged-in user.
 - **Headers:** `'x-auth-token': <your token>`
-- **Form Data:** Use `multipart/form-data` with a field named `file`.
+- **Form Data:** Use `multipart/form-data` with fields:
+  - `file` (required) - The file to upload
+  - `title` (optional) - A user-friendly title for the file
+- **Response:** Returns file information including `fileUrl` for accessing the file
 - **Example:**
   ```js
   const formData = new FormData();
   formData.append('file', fileInput.files[0]);
+  formData.append('title', 'My Document Title'); // Optional
   fetch('/api/files/upload', {
     method: 'POST',
     headers: {
@@ -408,6 +522,7 @@ Below are the main backend routes you will use, with simple explanations and cod
 - **Endpoint:** `GET /api/files/my-files`
 - **Purpose:** List all files uploaded by the logged-in user.
 - **Headers:** `'x-auth-token': <your token>`
+- **Response:** Returns an array of file objects with `id`, `title`, `file_path`, `uploaded_at`, and `fileUrl`
 - **Example:**
   ```js
   fetch('/api/files/my-files', {
@@ -419,9 +534,27 @@ Below are the main backend routes you will use, with simple explanations and cod
   .then(data => console.log(data));
   ```
 
+#### 3. Delete a File
+
+- **Endpoint:** `DELETE /api/files/delete/:fileId`
+- **Purpose:** Delete a specific file uploaded by the logged-in user.
+- **Headers:** `'x-auth-token': <your token>`
+- **URL Parameter:** `fileId` - The ID of the file to delete
+- **Example:**
+  ```js
+  fetch('/api/files/delete/1', {
+    method: 'DELETE',
+    headers: {
+      'x-auth-token': localStorage.getItem('authToken')
+    }
+  })
+  .then(res => res.json())
+  .then(data => alert(data.msg || data.errors?.[0]?.msg));
+  ```
+
 ---
 
-## 5. General Tips
+## 7. General Tips
 
 - **Always check responses** for errors and show friendly messages to users.
 - **Store the JWT token** (from login) in `localStorage` or `sessionStorage`.
@@ -431,17 +564,23 @@ Below are the main backend routes you will use, with simple explanations and cod
 
 ---
 
-## 6. Where to Get More Info
+## 8. Where to Get More Info
 
 - The backend API documentation is in [backend/README.md](backend/README.md).
 - If you need new API features, ask the backend developer.
 
 ---
 
-## 7. Summary
+## 9. Summary
 
 - Put all frontend files in the `backend/public/` folder.
 - Start the backend before testing your frontend.
 - Use relative URLs for all API calls.
 - Include the JWT token for protected routes.
-- Handle
+- Handle errors gracefully and provide user-friendly feedback.
+
+---
+
+## Happy Coding! 🚀
+
+This guide should get you started with building your frontend. Remember to test your API calls and handle edge cases appropriately.

@@ -8,18 +8,7 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-async function sendTrainingNotification(to, subject, text) {
-  const mailOptions = {
-    from: process.env.EMAIL_USER,
-    to,
-    subject,
-    text,
-  };
-  return transporter.sendMail(mailOptions);
-}
-
-
-async function sendTrainingNotification(to, subject, text, attachment) {
+async function sendTrainingNotification(to, subject, text, attachment = null) {
   const mailOptions = {
     from: process.env.EMAIL_USER,
     to,

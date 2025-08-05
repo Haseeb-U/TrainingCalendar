@@ -29,15 +29,58 @@ router.post('/upload', jwtTokenDecoder, upload.single('file'), async (req, res) 
   }
   const userId = req.user.id;
   const fileName = req.file.filename; // Store only the filename
+  const title = req.body.title || req.file.originalname; // Use provided title or original filename
 
   try {
     await req.app.locals.db.query(
-      'INSERT INTO user_files (user_id, file_path) VALUES (?, ?)',
-      [userId, fileName] // Save filename, not full path
+      'INSERT INTO user_files (user_id, title, file_path) VALUES (?, ?, ?)',
+      [userId, title, fileName] // Save filename, not full path
     );
     res.status(201).json({ 
       msg: 'File uploaded successfully', 
       fileUrl: `/userFiles/${fileName}` // Provide accessible URL
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ msg: 'Server error' });
+  }
+});
+
+
+// route to delete a file
+// @route   DELETE /api/files/delete/:fileId
+// access  private
+router.delete('/delete/:fileId', jwtTokenDecoder, async (req, res) => {
+  const userId = req.user.id;
+  const fileId = req.params.fileId;
+
+  try {
+    // Fetch the file path from the database
+    const [file] = await req.app.locals.db.query(
+      'SELECT file_path FROM user_files WHERE id = ? AND user_id = ?',
+      [fileId, userId]
+    );
+
+    if (file.length === 0) {
+      return res.status(404).json({ msg: 'File not found' });
+    }
+
+    const filePath = path.join(__dirname, '../../userFiles', file[0].file_path);
+
+    // Delete the file from the filesystem
+    require('fs').unlink(filePath, async (err) => {
+      if (err) {
+        console.error(err);
+        return res.status(500).json({ msg: 'Error deleting file' });
+      }
+
+      // Remove the file record from the database
+      await req.app.locals.db.query(
+        'DELETE FROM user_files WHERE id = ? AND user_id = ?',
+        [fileId, userId]
+      );
+
+      res.status(200).json({ msg: 'File deleted successfully' });
     });
   } catch (err) {
     console.error(err);
@@ -54,10 +97,17 @@ router.get('/my-files', jwtTokenDecoder, async (req, res) => {
 
   try {
     const [files] = await req.app.locals.db.query(
-      'SELECT * FROM user_files WHERE user_id = ?',
+      'SELECT id, title, file_path, uploaded_at FROM user_files WHERE user_id = ?',
       [userId]
     );
-    res.status(200).json(files);
+    
+    // Add file URL to each file object
+    const filesWithUrls = files.map(file => ({
+      ...file,
+      fileUrl: `/userFiles/${file.file_path}`
+    }));
+    
+    res.status(200).json(filesWithUrls);
   } catch (err) {
     console.error(err);
     res.status(500).json({ msg: 'Server error' });
