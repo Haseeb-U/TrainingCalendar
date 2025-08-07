@@ -60,10 +60,11 @@ async function initDatabase() {
     CREATE TABLE IF NOT EXISTS user_files (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
-    title VARCHAR(255) NOT NULL,
+    training_id INT NOT NULL,
     file_path VARCHAR(255) NOT NULL,
     uploaded_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (training_id) REFERENCES Trainings(id) ON DELETE CASCADE
 );`);
 
   return db;

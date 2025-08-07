@@ -406,11 +406,33 @@ Below are the main backend routes you will use, with simple explanations and cod
   .then(data => console.log(data));
   ```
 
-#### 5. Update Training Status
+#### 5. Get Single Training with Files
+
+- **Endpoint:** `GET /api/trainings/:id`
+- **Purpose:** Get details of a specific training including associated files.
+- **Headers:** `'x-auth-token': <your token>`
+- **URL Parameter:** `id` - The training ID
+- **Response:** Returns training details with `files` array
+- **Example:**
+  ```js
+  fetch('/api/trainings/1', {
+    headers: {
+      'x-auth-token': localStorage.getItem('authToken')
+    }
+  })
+  .then(res => res.json())
+  .then(data => {
+    console.log('Training:', data.name);
+    console.log('Files:', data.files);
+  });
+  ```
+
+#### 6. Update Training Status
 
 - **Endpoint:** `PATCH /api/trainings/status`
 - **Purpose:** Change a training's status (pending/completed).
 - **Headers:** `'x-auth-token': <your token>`
+- **Important:** A training cannot be marked as "completed" unless at least one file has been uploaded for that training.
 - **Request Body:**
   ```json
   {
@@ -487,6 +509,8 @@ The system automatically sends email reminders for upcoming trainings:
   - Configure `EMAIL_USER` and `EMAIL_PASS` in your `.env` file
   - The system uses Gmail by default (you can modify `mail/email.js` for other providers)
 
+**Immediate Notifications:** When creating a training scheduled within the next 2 days, notification emails are sent immediately in addition to the daily reminder schedule.
+
 **Note:** You don't need to call any API for this - it happens automatically. Just make sure to include valid email addresses in the `notification_recipients` array when creating trainings.
 
 ---
@@ -500,13 +524,13 @@ The system automatically sends email reminders for upcoming trainings:
 - **Headers:** `'x-auth-token': <your token>`
 - **Form Data:** Use `multipart/form-data` with fields:
   - `file` (required) - The file to upload
-  - `title` (optional) - A user-friendly title for the file
-- **Response:** Returns file information including `fileUrl` for accessing the file
+  - `training_id` (required) - The ID of the training this file belongs to
+- **Response:** Returns file information including `fileUrl` for accessing the file and `training_id`
 - **Example:**
   ```js
   const formData = new FormData();
   formData.append('file', fileInput.files[0]);
-  formData.append('title', 'My Document Title'); // Optional
+  formData.append('training_id', '1'); // Required
   fetch('/api/files/upload', {
     method: 'POST',
     headers: {
@@ -523,7 +547,7 @@ The system automatically sends email reminders for upcoming trainings:
 - **Endpoint:** `GET /api/files/my-files`
 - **Purpose:** List all files uploaded by the logged-in user.
 - **Headers:** `'x-auth-token': <your token>`
-- **Response:** Returns an array of file objects with `id`, `title`, `file_path`, `uploaded_at`, and `fileUrl`
+- **Response:** Returns an array of file objects with `id`, `file_path`, `uploaded_at`, `training_id`, `training_name`, and `fileUrl`
 - **Example:**
   ```js
   fetch('/api/files/my-files', {
@@ -551,6 +575,27 @@ The system automatically sends email reminders for upcoming trainings:
   })
   .then(res => res.json())
   .then(data => alert(data.msg || data.errors?.[0]?.msg));
+  ```
+
+#### 4. Get Files for Training
+
+- **Endpoint:** `GET /api/files/training/:trainingId`
+- **Purpose:** Get all files associated with a specific training.
+- **Headers:** `'x-auth-token': <your token>`
+- **URL Parameter:** `trainingId` - The ID of the training
+- **Response:** Returns training information and array of associated files
+- **Example:**
+  ```js
+  fetch('/api/files/training/1', {
+    headers: {
+      'x-auth-token': localStorage.getItem('authToken')
+    }
+  })
+  .then(res => res.json())
+  .then(data => {
+    console.log('Training:', data.training);
+    console.log('Files:', data.files);
+  });
   ```
 
 ---

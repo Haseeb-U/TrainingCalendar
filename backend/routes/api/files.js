@@ -28,19 +28,34 @@ router.post('/upload', jwtTokenDecoder, upload.single('file'), async (req, res) 
   if (!req.file) {
     return res.status(400).json({ msg: 'No file uploaded' });
   }
+
   const userId = req.user.id;
   const fileName = req.file.filename;
-  // Ensure title fallback to sanitized original filename if missing
-  const title = req.body.title?.trim() || req.file.originalname || fileName;
+  const trainingId = req.body.training_id;
+
+  if (!trainingId) {
+    return res.status(400).json({ msg: 'Training ID is required' });
+  }
 
   try {
+    // Verify training exists and user has access to it
+    const [training] = await req.app.locals.db.query(
+      'SELECT id FROM Trainings WHERE id = ?',
+      [trainingId]
+    );
+
+    if (training.length === 0) {
+      return res.status(404).json({ msg: 'Training not found' });
+    }
+
     await req.app.locals.db.query(
-      'INSERT INTO user_files (user_id, title, file_path) VALUES (?, ?, ?)',
-      [userId, title, fileName]
+      'INSERT INTO user_files (user_id, training_id, file_path) VALUES (?, ?, ?)',
+      [userId, trainingId, fileName]
     );
     res.status(201).json({
       msg: 'File uploaded successfully',
-      fileUrl: `/userFiles/${fileName}`
+      fileUrl: `/userFiles/${fileName}`,
+      training_id: trainingId
     });
   } catch (err) {
     console.error(err);
@@ -90,7 +105,7 @@ router.get('/my-files', jwtTokenDecoder, async (req, res) => {
 
   try {
     const [files] = await req.app.locals.db.query(
-      'SELECT id, title, file_path, uploaded_at FROM user_files WHERE user_id = ?',
+      'SELECT uf.id, uf.file_path, uf.uploaded_at, uf.training_id, t.name as training_name FROM user_files uf LEFT JOIN Trainings t ON uf.training_id = t.id WHERE uf.user_id = ?',
       [userId]
     );
 
@@ -100,6 +115,42 @@ router.get('/my-files', jwtTokenDecoder, async (req, res) => {
     }));
 
     res.status(200).json(filesWithUrls);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ msg: 'Server error' });
+  }
+});
+
+// Get all files for a specific training
+router.get('/training/:trainingId', jwtTokenDecoder, async (req, res) => {
+  const trainingId = req.params.trainingId;
+
+  try {
+    // Verify training exists
+    const [training] = await req.app.locals.db.query(
+      'SELECT id, name FROM Trainings WHERE id = ?',
+      [trainingId]
+    );
+
+    if (training.length === 0) {
+      return res.status(404).json({ msg: 'Training not found' });
+    }
+
+    const [files] = await req.app.locals.db.query(
+      'SELECT uf.id, uf.file_path, uf.uploaded_at, uf.user_id, u.name as uploaded_by FROM user_files uf LEFT JOIN users u ON uf.user_id = u.id WHERE uf.training_id = ?',
+      [trainingId]
+    );
+
+    const filesWithUrls = files.map(file => ({
+      ...file,
+      fileUrl: `/userFiles/${file.file_path}`,
+      training_name: training[0].name
+    }));
+
+    res.status(200).json({
+      training: training[0],
+      files: filesWithUrls
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ msg: 'Server error' });

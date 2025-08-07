@@ -40,7 +40,7 @@ router.post(
 			return res.status(400).json({ errors: errors.array() });
 		}
 
-		const userId = req.user.id;
+        const userId = req.user.id;
         const {
             name,
             duration,
@@ -54,17 +54,44 @@ router.post(
 
 
         try {
+            // Get user's email address
+            const [userResult] = await req.app.locals.db.query(
+                'SELECT email FROM users WHERE id = ?',
+                [userId]
+            );
+
+            if (userResult.length === 0) {
+                return res.status(404).json({ msg: 'User not found' });
+            }
+
+            const userEmail = userResult[0].email;
+
+            // Parse notification recipients
+            let recipients = [];
+            if (typeof notification_recipients === 'string') {
+                try {
+                    recipients = JSON.parse(notification_recipients);
+                } catch {
+                    recipients = notification_recipients.split(',').map(email => email.trim());
+                }
+            } else if (Array.isArray(notification_recipients)) {
+                recipients = notification_recipients;
+            }
+
+            // Add user's email if not already included
+            if (!recipients.includes(userEmail)) {
+                recipients.push(userEmail);
+            }
+
             // Format datetime to MySQL DATETIME format
-            const formattedDateTime = new Date(schedule_date).toISOString().slice(0, 19).replace('T', ' ');
-            
-            const training = {
+            const formattedDateTime = new Date(schedule_date).toISOString().slice(0, 19).replace('T', ' ');            const training = {
                 name,
                 duration,
                 number_of_participants,
                 schedule_date: formattedDateTime,
                 venue,
                 training_hours,
-                notification_recipients,
+                notification_recipients: JSON.stringify(recipients),
                 status,
                 user_id: userId,
             };
@@ -82,13 +109,6 @@ router.post(
             
             if (daysDiff <= 2 && daysDiff >= 0) {
                 try {
-                    let recipients = [];
-                    if (typeof notification_recipients === 'string') {
-                        recipients = JSON.parse(notification_recipients);
-                    } else {
-                        recipients = notification_recipients;
-                    }
-                    
                     if (Array.isArray(recipients) && recipients.length > 0) {
                         const subject = `New Training Scheduled: ${name}`;
                         const text = `A new training "${name}" has been scheduled for ${scheduleDate.toLocaleDateString()}.`;
@@ -163,6 +183,35 @@ router.patch(
 
 
         try {
+            // Get user's email address
+            const [userResult] = await req.app.locals.db.query(
+                'SELECT email FROM users WHERE id = ?',
+                [userId]
+            );
+
+            if (userResult.length === 0) {
+                return res.status(404).json({ msg: 'User not found' });
+            }
+
+            const userEmail = userResult[0].email;
+
+            // Parse notification recipients
+            let recipients = [];
+            if (typeof notification_recipients === 'string') {
+                try {
+                    recipients = JSON.parse(notification_recipients);
+                } catch {
+                    recipients = notification_recipients.split(',').map(email => email.trim());
+                }
+            } else if (Array.isArray(notification_recipients)) {
+                recipients = notification_recipients;
+            }
+
+            // Add user's email if not already included
+            if (!recipients.includes(userEmail)) {
+                recipients.push(userEmail);
+            }
+
             // Format datetime to MySQL DATETIME format
             const formattedDateTime = new Date(schedule_date).toISOString().slice(0, 19).replace('T', ' ');
             
@@ -173,7 +222,7 @@ router.patch(
                 schedule_date: formattedDateTime,
                 venue,
                 training_hours,
-                notification_recipients,
+                notification_recipients: JSON.stringify(recipients),
                 status,
             };
 
@@ -241,7 +290,26 @@ router.get('/my-trainings', [jwtTokenDecoder], async (req, res) => {
             return res.status(404).json({ msg: 'No trainings found' });
         }
 
-        res.status(200).json(trainings);
+        // Get files for each training
+        const trainingsWithFiles = await Promise.all(trainings.map(async (training) => {
+            const [files] = await req.app.locals.db.query(
+                'SELECT uf.id, uf.file_path, uf.uploaded_at, u.name as uploaded_by FROM user_files uf LEFT JOIN users u ON uf.user_id = u.id WHERE uf.training_id = ?',
+                [training.id]
+            );
+
+            const filesWithUrls = files.map(file => ({
+                ...file,
+                fileUrl: `/userFiles/${file.file_path}`
+            }));
+
+            return {
+                ...training,
+                files: filesWithUrls,
+                file_count: filesWithUrls.length
+            };
+        }));
+
+        res.status(200).json(trainingsWithFiles);
     } catch (error) {
         console.error(error);
         res.status(500).send('Server error');
@@ -266,6 +334,20 @@ router.patch('/status', [jwtTokenDecoder, [
     const { training_id, status } = req.body;
 
     try {
+        // If trying to mark as complete, check if files are uploaded
+        if (status === 'completed') {
+            const [files] = await req.app.locals.db.query(
+                'SELECT COUNT(*) as file_count FROM user_files WHERE training_id = ?',
+                [training_id]
+            );
+
+            if (files[0].file_count === 0) {
+                return res.status(400).json({ 
+                    msg: 'Cannot mark training as completed. At least one file must be uploaded for this training.' 
+                });
+            }
+        }
+
         const [result] = await req.app.locals.db.query(
             'UPDATE Trainings SET status = ? WHERE id = ? AND user_id = ?',
             [status, training_id, userId]
@@ -277,6 +359,45 @@ router.patch('/status', [jwtTokenDecoder, [
 
         res.status(200).json({
             msg: 'Training status updated successfully',
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).send('Server error');
+    }
+});
+
+// route to get a single training with its files
+// GET /api/trainings/:id
+// access private
+router.get('/:id', jwtTokenDecoder, async (req, res) => {
+    const trainingId = req.params.id;
+    const userId = req.user.id;
+
+    try {
+        // Get training details
+        const [training] = await req.app.locals.db.query(
+            'SELECT * FROM Trainings WHERE id = ? AND user_id = ?',
+            [trainingId, userId]
+        );
+
+        if (training.length === 0) {
+            return res.status(404).json({ msg: 'Training not found or access denied' });
+        }
+
+        // Get associated files
+        const [files] = await req.app.locals.db.query(
+            'SELECT uf.id, uf.file_path, uf.uploaded_at, u.name as uploaded_by FROM user_files uf LEFT JOIN users u ON uf.user_id = u.id WHERE uf.training_id = ?',
+            [trainingId]
+        );
+
+        const filesWithUrls = files.map(file => ({
+            ...file,
+            fileUrl: `/userFiles/${file.file_path}`
+        }));
+
+        res.status(200).json({
+            ...training[0],
+            files: filesWithUrls
         });
     } catch (error) {
         console.error(error);
