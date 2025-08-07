@@ -1,8 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
   <title>Main Page</title>
+
+  <!-- 🔒 Login check: redirect if not authenticated -->
+  <script>
+    const token = localStorage.getItem('authToken');
+    if (!token) {
+      window.location.href = 'login.html';
+    }
+  </script>
+
   <style>
     * {
       box-sizing: border-box;
@@ -171,7 +181,7 @@
 </head>
 <body>
 
- <nav>
+<nav>
   <div class="nav-title">Training Horizon</div>
   <div class="nav-links">
     <a href="table.html">My Trainings</a>
@@ -181,153 +191,154 @@
       <span class="dropdown-btn">User</span>
       <div class="dropdown-content">
         <a href="profile.html">Profile</a>
-        <a href="homepage.html">Logout</a>
+        <a href="login.html" onclick="logout()">Logout</a>
       </div>
     </div>
   </div>
 </nav>
 
-  <!-- Main Container -->
-  <div class="container">
-    <div class="top-bar">
-      <h1 id="welcomeMessage">Welcome!</h1>
-    </div>
-
-    <div class="calendar">
-      <div class="controls">
-        <button id="prev">‹ Prev</button>
-        <div id="monthYear"></div>
-        <button id="next">Next ›</button>
-      </div>
-      <div class="calendar-grid" id="calendarGrid">
-        <div class="day-name">Sun</div><div class="day-name">Mon</div>
-        <div class="day-name">Tue</div><div class="day-name">Wed</div>
-        <div class="day-name">Thu</div><div class="day-name">Fri</div>
-        <div class="day-name">Sat</div>
-      </div>
-    </div>
+<!-- Main Container -->
+<div class="container">
+  <div class="top-bar">
+    <h1 id="welcomeMessage">Welcome!</h1>
   </div>
 
-  <!-- Calendar Script -->
-  <script>
-    let today = new Date();
-    let currentMonth = today.getMonth(), currentYear = today.getFullYear();
-    const monthNames = ["January","February","March","April","May","June","July","August","September","October","November","December"];
-    const calendarGrid = document.getElementById("calendarGrid");
-    const monthYear = document.getElementById("monthYear");
+  <div class="calendar">
+    <div class="controls">
+      <button id="prev">‹ Prev</button>
+      <div id="monthYear"></div>
+      <button id="next">Next ›</button>
+    </div>
+    <div class="calendar-grid" id="calendarGrid">
+      <div class="day-name">Sun</div><div class="day-name">Mon</div>
+      <div class="day-name">Tue</div><div class="day-name">Wed</div>
+      <div class="day-name">Thu</div><div class="day-name">Fri</div>
+      <div class="day-name">Sat</div>
+    </div>
+  </div>
+</div>
 
-    let sessionsByDate = {};
+<!-- Calendar Script -->
+<script>
+  function logout() {
+    localStorage.removeItem('authToken');
+  }
 
-    function toISODateString(date) {
-      return date.toISOString().slice(0,10);
-    }
+  let today = new Date();
+  let currentMonth = today.getMonth(), currentYear = today.getFullYear();
+  const monthNames = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+  const calendarGrid = document.getElementById("calendarGrid");
+  const monthYear = document.getElementById("monthYear");
 
-    async function fetchSessions() {
-      try {
-        const res = await fetch('/api/trainings/my-trainings', {
-          headers: { 'x-auth-token': localStorage.getItem('authToken') }
-        });
-        if (!res.ok) throw new Error('Failed to fetch sessions');
-        const data = await res.json();
+  let sessionsByDate = {};
 
-        sessionsByDate = {};
-        data.forEach(session => {
-          if (session.status !== 'completed') {
-            const sessionDate = new Date(session.schedule_date);
-            const dateKey = toISODateString(sessionDate);
-            if (!sessionsByDate[dateKey]) sessionsByDate[dateKey] = [];
-            sessionsByDate[dateKey].push(session);
-          }
-        });
+  function toISODateString(date) {
+    return date.toISOString().slice(0,10);
+  }
 
-      } catch(err) {
-        showError('Error loading sessions: ' + err.message, 'Loading Error');
-        sessionsByDate = {};
-      }
-    }
+  async function fetchSessions() {
+    try {
+      const res = await fetch('/api/trainings/my-trainings', {
+        headers: { 'x-auth-token': localStorage.getItem('authToken') }
+      });
+      if (!res.ok) throw new Error('Failed to fetch sessions');
+      const data = await res.json();
 
-    function renderCalendar() {
-      monthYear.textContent = `${monthNames[currentMonth]} ${currentYear}`;
-      calendarGrid.querySelectorAll(".day").forEach(d => d.remove());
-
-      let firstDay = new Date(currentYear, currentMonth, 1).getDay();
-      let daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
-
-      for (let i = 0; i < firstDay; i++) {
-        const empty = document.createElement("div");
-        empty.className = "day";
-        calendarGrid.append(empty);
-      }
-
-      for (let day = 1; day <= daysInMonth; day++) {
-        const cell = document.createElement("div");
-        cell.className = "day";
-        cell.innerHTML = `<div class="date">${day}</div>`;
-
-        const currentDate = new Date(currentYear, currentMonth, day);
-        const dateStr = toISODateString(currentDate);
-
-        if (sessionsByDate[dateStr]) {
-          sessionsByDate[dateStr].forEach(session => {
-            const ev = document.createElement("div");
-            ev.className = "event";
-            ev.textContent = session.name;
-            ev.title = `Edit session: ${session.name}`;
-            ev.onclick = () => {
-              window.location.href = `edit.html?id=${encodeURIComponent(session.id)}`;
-            };
-            cell.append(ev);
-          });
+      sessionsByDate = {};
+      data.forEach(session => {
+        if (session.status !== 'completed') {
+          const sessionDate = new Date(session.schedule_date);
+          const dateKey = toISODateString(sessionDate);
+          if (!sessionsByDate[dateKey]) sessionsByDate[dateKey] = [];
+          sessionsByDate[dateKey].push(session);
         }
+      });
 
-        calendarGrid.append(cell);
-      }
+    } catch(err) {
+      alert('Error loading sessions: ' + err.message);
+      sessionsByDate = {};
+    }
+  }
+
+  function renderCalendar() {
+    monthYear.textContent = `${monthNames[currentMonth]} ${currentYear}`;
+    calendarGrid.querySelectorAll(".day").forEach(d => d.remove());
+
+    let firstDay = new Date(currentYear, currentMonth, 1).getDay();
+    let daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+
+    for (let i = 0; i < firstDay; i++) {
+      const empty = document.createElement("div");
+      empty.className = "day";
+      calendarGrid.append(empty);
     }
 
-    async function refreshCalendar() {
-      await fetchSessions();
-      renderCalendar();
-    }
+    for (let day = 1; day <= daysInMonth; day++) {
+      const cell = document.createElement("div");
+      cell.className = "day";
+      cell.innerHTML = `<div class="date">${day}</div>`;
 
-    document.getElementById("prev").onclick = () => {
-      currentMonth--;
-      if (currentMonth < 0) {
-        currentMonth = 11;
-        currentYear--;
-      }
-      refreshCalendar();
-    };
+      const currentDate = new Date(currentYear, currentMonth, day);
+      const dateStr = toISODateString(currentDate);
 
-    document.getElementById("next").onclick = () => {
-      currentMonth++;
-      if (currentMonth > 11) {
-        currentMonth = 0;
-        currentYear++;
-      }
-      refreshCalendar();
-    };
-
-    // Fetch user name and inject it into welcome message
-    async function loadUserName() {
-      try {
-        const res = await fetch('/api/users/profile', {
-          headers: {
-            'x-auth-token': localStorage.getItem('authToken')
-          }
+      if (sessionsByDate[dateStr]) {
+        sessionsByDate[dateStr].forEach(session => {
+          const ev = document.createElement("div");
+          ev.className = "event";
+          ev.textContent = session.name;
+          ev.title = `Edit session: ${session.name}`;
+          ev.onclick = () => {
+            window.location.href = `edit.html?id=${encodeURIComponent(session.id)}`;
+          };
+          cell.append(ev);
         });
-        if (!res.ok) throw new Error('Failed to fetch user info');
-        const data = await res.json();
-        document.getElementById('welcomeMessage').textContent = `Welcome, ${data.name}!`;
-      } catch (err) {
-        console.error('Error loading user name:', err);
       }
+
+      calendarGrid.append(cell);
     }
+  }
 
-    // Initial load
+  async function refreshCalendar() {
+    await fetchSessions();
+    renderCalendar();
+  }
+
+  document.getElementById("prev").onclick = () => {
+    currentMonth--;
+    if (currentMonth < 0) {
+      currentMonth = 11;
+      currentYear--;
+    }
     refreshCalendar();
-    loadUserName();
-  </script>
+  };
 
-  <script src="utils/notifications.js"></script>
+  document.getElementById("next").onclick = () => {
+    currentMonth++;
+    if (currentMonth > 11) {
+      currentMonth = 0;
+      currentYear++;
+    }
+    refreshCalendar();
+  };
+
+  async function loadUserName() {
+    try {
+      const res = await fetch('/api/users/profile', {
+        headers: {
+          'x-auth-token': localStorage.getItem('authToken')
+        }
+      });
+      if (!res.ok) throw new Error('Failed to fetch user info');
+      const data = await res.json();
+      document.getElementById('welcomeMessage').textContent = `Welcome, ${data.name}!`;
+    } catch (err) {
+      console.error('Error loading user name:', err);
+    }
+  }
+
+  // Initial load
+  refreshCalendar();
+  loadUserName();
+</script>
 </body>
 </html>

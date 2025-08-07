@@ -139,7 +139,6 @@
     </div>
   </div>
 
-  <script src="utils/notifications.js"></script>
   <script>
     document.getElementById('loginForm').addEventListener('submit', function(event) {
       event.preventDefault(); // Prevent form default submit
@@ -156,17 +155,15 @@
         const data = await res.json();
         if (res.ok && data.token) {
           localStorage.setItem('authToken', data.token);
-          showSuccess('Login successful! Redirecting...', 'Welcome Back');
-          setTimeout(() => {
-            window.location.href = 'main.html';
-          }, 1500);
+          alert('Login successful!');
+          window.location.href = 'main.html';
         } else {
-          showError(data.errors?.[0]?.msg || 'Invalid email or password', 'Login Failed');
+          alert(data.errors?.[0]?.msg || 'Invalid email or password');
         }
       })
       .catch(err => {
         console.error('Login failed:', err);
-        showError('Something went wrong. Please try again.', 'Connection Error');
+        alert('Something went wrong. Please try again.');
       });
     });
   </script>

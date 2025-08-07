@@ -306,13 +306,14 @@ Below are the main backend routes you will use, with simple explanations and cod
 - **Endpoint:** `POST /api/trainings/create`
 - **Purpose:** Add a new training event (must be logged in).
 - **Headers:** `'x-auth-token': <your token>`
+- **Note:** `schedule_date` should be in DATETIME format (YYYY-MM-DD HH:MM:SS) or ISO string format
 - **Request Body:**
   ```json
   {
     "name": "React Basics",
     "duration": 2,
     "number_of_participants": 10,
-    "schedule_date": "2025-08-01",
+    "schedule_date": "2025-08-01 14:30:00",
     "venue": "Room 101",
     "training_hours": 4,
     "notification_recipients": "[\"someone@email.com\"]",
@@ -331,7 +332,7 @@ Below are the main backend routes you will use, with simple explanations and cod
       name: 'React Basics',
       duration: 2,
       number_of_participants: 10,
-      schedule_date: '2025-08-01',
+      schedule_date: '2025-08-01 14:30:00',
       venue: 'Room 101',
       training_hours: 4,
       notification_recipients: JSON.stringify(['someone@email.com']),
@@ -361,7 +362,7 @@ Below are the main backend routes you will use, with simple explanations and cod
       name: 'React Advanced',
       duration: 3,
       number_of_participants: 12,
-      schedule_date: '2025-08-02',
+      schedule_date: '2025-08-02 09:00:00',
       venue: 'Room 102',
       training_hours: 6,
       notification_recipients: JSON.stringify(['another@email.com']),
@@ -449,7 +450,7 @@ Below are the main backend routes you will use, with simple explanations and cod
     "endDate": "20/Jul/2022"
   }
   ```
-  - `startDate` and `endDate` must be in `d/MMM/yyyy` format (e.g., `1/Jan/2025`).
+  - `startDate` and `endDate` must be in `DD/MMM/YYYY` format (e.g., `13/Jul/2022`).
 - **Example:**
   ```js
   fetch('/api/trainings/shareTrainingData', {

@@ -5,7 +5,6 @@ const jwt = require('jsonwebtoken');
 // require('dotenv').config();
 const jwtTokenDecoder = require('../../middleware/jwtTokenDecoder');
 const { sendTrainingNotification } = require('../../mail/email');
-const { formatDateConsistent } = require('../../utils/dateFormatter');
 
 
 // route to handle training creation requests
@@ -19,7 +18,14 @@ router.post(
             check('name', 'Name is required').not().isEmpty(),
             check('duration', 'Duration is required').not().isEmpty(),
             check('number_of_participants', 'Number of participants is required').not().isEmpty(),
-            check('schedule_date', 'Schedule date is required').not().isEmpty(),
+            check('schedule_date', 'Schedule date is required').not().isEmpty()
+                .custom((value) => {
+                    const date = new Date(value);
+                    if (isNaN(date.getTime())) {
+                        throw new Error('Invalid datetime format. Expected format: YYYY-MM-DD HH:MM:SS or ISO string');
+                    }
+                    return true;
+                }),
             check('venue', 'Venue is required').not().isEmpty(),
             check('training_hours', 'Training hours are required').not().isEmpty(),
             check('notification_recipients', 'Notification recipients are required').not().isEmpty(),
@@ -48,11 +54,14 @@ router.post(
 
 
         try {
+            // Format datetime to MySQL DATETIME format
+            const formattedDateTime = new Date(schedule_date).toISOString().slice(0, 19).replace('T', ' ');
+            
             const training = {
                 name,
                 duration,
                 number_of_participants,
-                schedule_date,
+                schedule_date: formattedDateTime,
                 venue,
                 training_hours,
                 notification_recipients,
@@ -65,46 +74,42 @@ router.post(
                 training
             );
 
+
+            // Send immediate notification if training is within 2 days
+            const scheduleDate = new Date(schedule_date);
+            const today = new Date();
+            const daysDiff = Math.ceil((scheduleDate - today) / (1000 * 60 * 60 * 24));
+            
+            if (daysDiff <= 2 && daysDiff >= 0) {
+                try {
+                    let recipients = [];
+                    if (typeof notification_recipients === 'string') {
+                        recipients = JSON.parse(notification_recipients);
+                    } else {
+                        recipients = notification_recipients;
+                    }
+                    
+                    if (Array.isArray(recipients) && recipients.length > 0) {
+                        const subject = `New Training Scheduled: ${name}`;
+                        const text = `A new training "${name}" has been scheduled for ${scheduleDate.toLocaleDateString()}.`;
+                        
+                        for (const email of recipients) {
+                            if (email && email.trim()) {
+                                await sendTrainingNotification(email.trim(), subject, text);
+                            }
+                        }
+                        console.log('Immediate notifications sent for new training');
+                    }
+                } catch (emailError) {
+                    console.error('Failed to send immediate notification:', emailError);
+                    // Don't fail the training creation if email fails
+                }
+            }
+
             res.status(201).json({
                 msg: 'Training created successfully',
                 training_id: result.insertId,
             });
-
-            // Send immediate reminder if training is within 2 days
-            const scheduleDate = new Date(schedule_date);
-            const today = new Date();
-            const twoDaysFromNow = new Date(today.getTime() + (2 * 24 * 60 * 60 * 1000));
-            
-            if (scheduleDate >= today && scheduleDate <= twoDaysFromNow && status === 'pending') {
-                try {
-                    // Parse notification recipients
-                    let recipients = [];
-                    if (Array.isArray(notification_recipients)) {
-                        recipients = notification_recipients;
-                    } else if (typeof notification_recipients === 'string') {
-                        try {
-                            recipients = JSON.parse(notification_recipients);
-                        } catch (parseError) {
-                            console.error('Error parsing notification recipients:', parseError);
-                            recipients = [];
-                        }
-                    }
-
-                    if (Array.isArray(recipients) && recipients.length > 0) {
-                        const formattedDate = formatDateConsistent(schedule_date);
-                        
-                        const subject = `Upcoming Training: ${name}`;
-                        const text = `Reminder: The training "${name}" is scheduled on ${formattedDate}.`;
-                        
-                        await sendTrainingNotification(recipients.join(','), subject, text);
-                        console.log(`Sent immediate reminder for new training: ${name}`);
-                    } else {
-                        console.log('No valid recipients found for training notification');
-                    }
-                } catch (error) {
-                    console.error('Error sending immediate reminder:', error);
-                }
-            }
         } catch (error) {
             console.error(error);
             res.status(500).send('Server error');
@@ -123,7 +128,14 @@ router.patch(
         check('name', 'Name is required').not().isEmpty(),
         check('duration', 'Duration is required').not().isEmpty(),
         check('number_of_participants', 'Number of participants is required').not().isEmpty(),
-        check('schedule_date', 'Schedule date is required').not().isEmpty(),
+        check('schedule_date', 'Schedule date is required').not().isEmpty()
+            .custom((value) => {
+                const date = new Date(value);
+                if (isNaN(date.getTime())) {
+                    throw new Error('Invalid datetime format. Expected format: YYYY-MM-DD HH:MM:SS or ISO string');
+                }
+                return true;
+            }),
         check('venue', 'Venue is required').not().isEmpty(),
         check('training_hours', 'Training hours are required').not().isEmpty(),
         check('notification_recipients', 'Notification recipients are required').not().isEmpty(),
@@ -151,11 +163,14 @@ router.patch(
 
 
         try {
+            // Format datetime to MySQL DATETIME format
+            const formattedDateTime = new Date(schedule_date).toISOString().slice(0, 19).replace('T', ' ');
+            
             const training = {
                 name,
                 duration,
                 number_of_participants,
-                schedule_date,
+                schedule_date: formattedDateTime,
                 venue,
                 training_hours,
                 notification_recipients,
@@ -174,42 +189,6 @@ router.patch(
             res.status(200).json({
                 msg: 'Training updated successfully',
             });
-
-            // Send immediate reminder if training is within 2 days
-            const scheduleDate = new Date(schedule_date);
-            const today = new Date();
-            const twoDaysFromNow = new Date(today.getTime() + (2 * 24 * 60 * 60 * 1000));
-            
-            if (scheduleDate >= today && scheduleDate <= twoDaysFromNow && status === 'pending') {
-                try {
-                    // Parse notification recipients
-                    let recipients = [];
-                    if (Array.isArray(notification_recipients)) {
-                        recipients = notification_recipients;
-                    } else if (typeof notification_recipients === 'string') {
-                        try {
-                            recipients = JSON.parse(notification_recipients);
-                        } catch (parseError) {
-                            console.error('Error parsing notification recipients:', parseError);
-                            recipients = [];
-                        }
-                    }
-
-                    if (Array.isArray(recipients) && recipients.length > 0) {
-                        const formattedDate = formatDateConsistent(schedule_date);
-                        
-                        const subject = `Updated Training: ${name}`;
-                        const text = `Reminder: The training "${name}" has been updated and is scheduled on ${formattedDate}.`;
-                        
-                        await sendTrainingNotification(recipients.join(','), subject, text);
-                        console.log(`Sent immediate reminder for updated training: ${name}`);
-                    } else {
-                        console.log('No valid recipients found for training notification');
-                    }
-                } catch (error) {
-                    console.error('Error sending immediate reminder:', error);
-                }
-            }
         } catch (error) {
             console.error(error);
             res.status(500).send('Server error');

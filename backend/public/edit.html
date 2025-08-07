@@ -3,6 +3,15 @@
 <head>
   <meta charset="UTF-8" /><meta name="viewport" content="width=device-width,initial-scale=1.0" />
   <title>Edit Training Session</title>
+
+  <script>
+    // Redirect if not logged in
+    const token = localStorage.getItem('authToken');
+    if (!token) {
+      window.location.href = 'login.html';
+    }
+  </script>
+
   <style>
     body {
       margin: 0;
@@ -61,6 +70,7 @@
       text-decoration: none;
       font-weight: 500;
       margin-left: 20px;
+      cursor: pointer;
     }
     .nav-links a:hover {
       color: #03c988;
@@ -69,6 +79,15 @@
 </head>
 <body>
 
+<nav>
+  <div class="nav-title">Training Horizon</div>
+  <div class="nav-links">
+    <a href="table.html">My Trainings</a>
+    <a href="main.html">Calendar</a>
+    <a href="records.html">Records</a>
+    <a onclick="logout()">Logout</a>
+  </div>
+</nav>
 
 <h1>Edit Training Session</h1>
 <form id="editForm">
@@ -105,14 +124,18 @@
 </form>
 
 <script>
+  // Logout function
+  function logout() {
+    localStorage.removeItem('authToken');
+    window.location.href = 'login.html';
+  }
+
   // Parse query param id
   const urlParams = new URLSearchParams(window.location.search);
   const trainingId = urlParams.get('id');
   if (!trainingId) {
-    showError('No training ID provided. Redirecting...', 'Missing ID');
-    setTimeout(() => {
-      window.location.href = 'table.html';
-    }, 2000);
+    alert('No training ID provided.');
+    window.location.href = 'table.html';
   }
 
   // Fetch existing training data
@@ -123,10 +146,8 @@
     const trainings = await res.json();
     const training = trainings.find(t => t.id == trainingId);
     if (!training) {
-      showError('Training not found. Redirecting...', 'Not Found');
-      setTimeout(() => {
-        window.location.href = 'table.html';
-      }, 2000);
+      alert('Training not found.');
+      window.location.href = 'table.html';
       return;
     }
 
@@ -185,18 +206,15 @@
 
     const data = await res.json();
     if (res.ok) {
-      showSuccess('Training updated successfully! Redirecting...', 'Update Complete');
-      setTimeout(() => {
-        window.location.href = 'table.html';
-      }, 1500);
+      alert('Training updated successfully!');
+      window.location.href = 'table.html';
     } else {
-      showError(data.msg || data.errors?.[0]?.msg || 'Failed to update', 'Update Failed');
+      alert(data.msg || data.errors?.[0]?.msg || 'Failed to update');
     }
   });
 
   fetchTraining();
 </script>
 
-<script src="utils/notifications.js"></script>
 </body>
 </html>

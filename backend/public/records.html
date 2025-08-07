@@ -1,13 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>File Gallery</title>
-
-  <!-- Flatpickr CSS for datepicker -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
-
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Records</title>
   <style>
+    /* ... your existing CSS unchanged ... */
     * {
       box-sizing: border-box;
     }
@@ -85,354 +83,404 @@
 
     .container {
       max-width: 900px;
-      margin: 60px auto;
+      margin: 40px auto 60px;
       background-color: #161b22;
-      padding: 30px 20px;
+      padding: 30px;
       border-radius: 12px;
       box-shadow: 0 0 15px white;
     }
 
-    .profile-header {
-      font-size: 26px;
-      font-weight: bold;
-      margin-bottom: 30px;
+    h1 {
       text-align: center;
+      margin-bottom: 25px;
       color: #34d399;
     }
 
-    .upload-section {
+    #gallery {
       display: flex;
       flex-direction: column;
-      gap: 15px;
-      margin-bottom: 30px;
+      gap: 20px;
+      margin-top: 10px;
     }
 
-    .upload-row {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-
-    input[type="text"].title-upload {
-      background-color: #121212;
-      color: white;
-      padding: 10px;
-      border: 1px solid #444;
-      border-radius: 6px;
-      width: 300px;
-      font-family: 'Segoe UI', sans-serif;
-    }
-
-    input[type="file"] {
-      margin-bottom: 0;
-      background-color: #121212;
-      color: white;
-      padding: 10px;
-      border: 1px solid #444;
-      border-radius: 6px;
-      width: 300px;
-    }
-
-    button.upload-btn {
-      background-color: #03c988;
-      color: white;
-      padding: 10px 25px;
-      font-weight: bold;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      box-shadow: 0 0 8px white;
-      transition: box-shadow 0.3s ease;
-    }
-
-    button.upload-btn:hover {
-      box-shadow: 0 0 12px #ffffff;
-    }
-
-    button.delete-btn {
-      background-color: #dc2626;
-      color: white;
-      padding: 6px 12px;
-      font-weight: bold;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 12px;
-      margin-right: 8px;
-    }
-
-    button.delete-btn:hover {
-      background-color: #b91c1c;
-    }
-
-    button.download-btn {
-      background-color: #2563eb;
-      color: white;
-      padding: 6px 12px;
-      font-weight: bold;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 12px;
-    }
-
-    button.download-btn:hover {
-      background-color: #1d4ed8;
-    }
-
-    #fileGallery {
-      margin-top: 20px;
-      display: flex;
-      flex-direction: column;
-      gap: 15px;
-    }
-
-    .file-block {
+    .photo-card {
       background-color: #1e1e1e;
-      border-radius: 10px;
       padding: 15px;
-      display: flex;
-      align-items: center;
-      gap: 15px;
-      box-shadow: 0 0 8px rgba(255 255 255 / 0.15);
-    }
-
-    .file-icon {
-      width: 60px;
-      height: 60px;
-      border-radius: 8px;
-      background-color: #2a2e35;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 24px;
-      flex-shrink: 0;
-    }
-
-    .file-preview {
-      width: 60px;
-      height: 60px;
-      border-radius: 8px;
-      object-fit: cover;
-      border: 2px solid #2a2e35;
-      cursor: pointer;
-      flex-shrink: 0;
-    }
-
-    .file-info {
-      flex-grow: 1;
-      display: flex;
-      flex-direction: column;
-      gap: 5px;
-    }
-
-    .file-title {
-      font-weight: 600;
-      font-size: 16px;
-      color: #34d399;
-    }
-
-    .file-date {
-      font-size: 14px;
-      color: #9ca3af;
-    }
-
-    .file-name {
-      font-size: 13px;
-      color: #6b7280;
-      font-style: italic;
-    }
-
-    .file-actions {
-      display: flex;
-      gap: 8px;
-      align-items: center;
-    }
-
-    #photoGallery {
-      margin-top: 20px;
-      display: flex;
-      flex-direction: column;
-      gap: 15px;
-    }
-
-    .image-block {
-      background-color: #1e1e1e;
       border-radius: 10px;
-      padding: 10px 15px;
       display: flex;
-      align-items: center;
       gap: 15px;
-      box-shadow: 0 0 8px rgba(255 255 255 / 0.15);
-    }
-
-    .image-block img {
-      width: 100px;
-      height: 100px;
-      border-radius: 8px;
-      object-fit: cover;
-      border: 2px solid #2a2e35;
-      cursor: pointer;
-      flex-shrink: 0;
-    }
-
-    .image-info {
-      flex-grow: 1;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .date-picker {
-      width: 150px;
-      padding: 6px 8px;
-      border-radius: 6px;
-      border: 1px solid #444;
-      background-color: #121212;
-      color: white;
-      font-weight: 600;
-      font-size: 14px;
-      font-family: 'Segoe UI', sans-serif;
-    }
-
-    .title-input {
+      align-items: center;
+      box-shadow: 0 0 8px #03c988aa;
       width: 100%;
-      max-width: 350px;
-      padding: 6px 10px;
-      border-radius: 6px;
-      border: 1px solid #444;
-      background-color: #121212;
-      color: white;
-      font-weight: 600;
-      font-size: 14px;
-      font-family: 'Segoe UI', sans-serif;
-      outline-offset: 1px;
-    }
-
-    .label {
-      font-size: 13px;
-      color: #03c988;
-      font-weight: 600;
-      user-select: none;
-    }
-
-    /* Modal styles */
-    .modal-overlay {
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0,0,0,0.85);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      z-index: 9999;
-    }
-
-    .modal-content {
-      position: relative;
-      max-width: 90vw;
-      max-height: 90vh;
-      background-color: #161b22;
-      border-radius: 12px;
-      box-shadow: 0 0 20px white;
-      padding: 15px;
-    }
-
-    .modal-content img {
-      max-width: 100%;
-      max-height: 80vh;
-      border-radius: 8px;
-      display: block;
+      max-width: 800px;
       margin: 0 auto;
     }
 
-    .modal-close {
-      position: absolute;
-      top: 8px;
-      right: 8px;
-      background: #03c988;
-      border: none;
-      border-radius: 50%;
-      color: black;
-      font-weight: bold;
-      width: 28px;
-      height: 28px;
+    .photo-card img {
+      height: 160px;
+      width: 160px;
+      border-radius: 8px;
+      border: 1px solid #03c988;
+      object-fit: contain;
+      background-color: #121212;
       cursor: pointer;
-      font-size: 20px;
-      line-height: 20px;
-      text-align: center;
+      transition: transform 0.2s;
+    }
+
+    .photo-card img:hover {
+      transform: scale(1.05);
+    }
+
+    .photo-info {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      flex-grow: 1;
+    }
+
+    .photo-info input[type="text"] {
+      padding: 8px;
+      border-radius: 6px;
+      border: 1px solid #03c988;
+      background-color: #121212;
+      color: white;
+      font-size: 14px;
+      outline-offset: 2px;
+      outline-color: transparent;
+      transition: outline-color 0.3s;
+    }
+
+    .photo-info input[type="text"]:focus {
+      outline-color: #03c988;
+    }
+
+    .photo-info input[type="datetime-local"] {
+      padding: 6px;
+      border-radius: 6px;
+      border: 1px solid #03c988;
+      background-color: #121212;
+      color: white;
+      font-size: 13px;
+      outline-offset: 2px;
+      outline-color: transparent;
+      transition: outline-color 0.3s;
+      width: 170px;
+    }
+
+    .photo-info input[type="datetime-local"]:focus {
+      outline-color: #03c988;
+    }
+
+    .date-display {
+      color: #9ca3af;
+      font-size: 13px;
+      font-family: monospace;
       user-select: none;
     }
 
-  </style>
+    .upload-section {
+      text-align: center;
+      margin-bottom: 25px;
+      padding: 0 10px;
+    }
 
+    .upload-section input[type="file"],
+    .upload-section input[type="text"] {
+      margin: 12px 10px 12px 0;
+      padding: 8px;
+      width: 250px;
+      max-width: 90vw;
+      border-radius: 6px;
+      border: 1px solid #03c988;
+      background-color: #121212;
+      color: white;
+      font-size: 15px;
+      outline-offset: 2px;
+      outline-color: transparent;
+      transition: outline-color 0.3s;
+    }
+    .upload-section input[type="file"]:focus,
+    .upload-section input[type="text"]:focus {
+      outline-color: #03c988;
+    }
+
+    .upload-btn {
+      padding: 10px 22px;
+      border: none;
+      border-radius: 8px;
+      background-color: #03c988;
+      color: white;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 0 10px #03c988aa;
+      transition: box-shadow 0.3s, background-color 0.3s;
+    }
+
+    .upload-btn:hover {
+      background-color: #028a6b;
+      box-shadow: 0 0 16px #03c988ff;
+    }
+
+    .delete-btn {
+      background-color: #e63946;
+      margin-top: 10px;
+      box-shadow: 0 0 8px #e6394666;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      width: 100%;
+      max-width: 120px;
+      align-self: flex-start;
+    }
+
+    .delete-btn:hover {
+      background-color: #ff4d4d;
+      box-shadow: 0 0 14px #ff4d4dcc;
+    }
+
+    #imageModal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw;
+      height: 100vh;
+      background-color: rgba(0,0,0,0.85);
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+      flex-direction: column;
+      padding: 10px;
+    }
+
+    #imageModal img {
+      max-width: 90vw;
+      max-height: 80vh;
+      border-radius: 12px;
+      box-shadow: 0 0 20px #03c988aa;
+    }
+
+    #imageModal button.close-btn {
+      margin-top: 15px;
+      padding: 10px 22px;
+      font-size: 18px;
+      font-weight: 700;
+      color: #03c988;
+      background: transparent;
+      border: 2px solid #03c988;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.3s, color 0.3s;
+      user-select: none;
+    }
+
+    #imageModal button.close-btn:hover {
+      background-color: #03c988;
+      color: #0d1117;
+    }
+  </style>
 </head>
 <body>
 
   <!-- Navbar -->
- <nav>
-  <div class="nav-title">Training Horizon</div>
-  <div class="nav-links">
-    <a href="table.html">My Trainings</a>
-    <a href="main.html">Calendar</a>
-    <a href="records.html">Records</a>
-    <div class="dropdown">
-      <span class="dropdown-btn">User</span>
-      <div class="dropdown-content">
-        <a href="profile.html">Profile</a>
-        <a href="homepage.html">Logout</a>
+  <nav>
+    <div class="nav-title">Training Horizon</div>
+    <div class="nav-links">
+      <a href="table.html">My Trainings</a>
+      <a href="main.html">Calendar</a>
+      <a href="records.html">Records</a>
+      <div class="dropdown">
+        <span class="dropdown-btn">User</span>
+        <div class="dropdown-content">
+          <a href="profile.html">Profile</a>
+          <a href="#" id="logoutLink">Logout</a>
+        </div>
       </div>
     </div>
-  </div>
-</nav>
+  </nav>
 
-  <!-- Container -->
   <div class="container">
-    <div class="profile-header">Upload and View Files</div>
+    <h1>Uploaded Records</h1>
 
     <div class="upload-section">
-      <div class="upload-row">
-        <input type="text" id="titleInput" class="title-upload" placeholder="Enter file title (optional)" />
-      </div>
-      <div class="upload-row">
-        <input type="file" id="fileInput" accept="image/*,.pdf" />
-        <button class="upload-btn" onclick="uploadFile()">Upload</button>
-      </div>
+      <input type="file" id="fileInput" />
+      <input type="text" id="titleInput" placeholder="Enter title" />
+      <button class="upload-btn" onclick="uploadFile()">Upload</button>
     </div>
 
-    <div id="fileGallery"></div>
+    <div id="gallery"></div>
   </div>
 
-  <!-- Modal for image preview -->
-  <div id="modal" class="modal-overlay" style="display:none;">
-    <div class="modal-content">
-      <button class="modal-close" onclick="closeModal()">×</button>
-      <img id="modalImage" src="" alt="Large preview" />
-    </div>
+  <!-- Image Modal -->
+  <div id="imageModal">
+    <img src="" alt="Preview Image" id="modalImg" />
+    <button class="close-btn" onclick="closeModal()">Close</button>
   </div>
-
-  <!-- Flatpickr JS -->
-  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-  <script src="utils/dateFormatter.js"></script>
-  <script src="utils/notifications.js"></script>
 
   <script>
+    // Redirect to login if no token found
+    window.onload = () => {
+      if (!localStorage.getItem('authToken')) {
+        alert('You are not logged in. Redirecting...');
+        window.location.href = 'homepage.html'; // or login page
+        return;
+      }
+      fetchFiles();
+    };
+
+    // Logout handler
+    document.getElementById('logoutLink').addEventListener('click', e => {
+      e.preventDefault();
+      localStorage.removeItem('authToken');
+      window.location.href = 'homepage.html'; // or login page
+    });
+
+    let filesCache = [];
+
+    // Updated date format: dd/Mon/yyyy
+    function formatDateDisplay(date) {
+      const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+      const d = new Date(date);
+      const dd = String(d.getDate()).padStart(2, '0');
+      const mm = months[d.getMonth()];
+      const yyyy = d.getFullYear();
+      return `${dd}/${mm}/${yyyy}`;
+    }
+
+    function sortFiles() {
+      filesCache.sort((a, b) => new Date(b._date) - new Date(a._date));
+    }
+
+    function fetchFiles() {
+      fetch('/api/files/my-files', {
+        method: 'GET',
+        headers: {
+          'x-auth-token': localStorage.getItem('authToken')
+        }
+      })
+      .then(res => res.json())
+      .then(data => {
+        filesCache = data.map(f => ({
+          ...f,
+          _title: f.title || '',
+          _date: f.uploaded_at || new Date().toISOString()
+        }));
+        sortFiles();
+        displayPhotos();
+      })
+      .catch(err => {
+        console.error('Failed to fetch files:', err);
+        alert('Failed to load files');
+      });
+    }
+
+    function displayPhotos() {
+      const gallery = document.getElementById('gallery');
+      gallery.innerHTML = '';
+
+      filesCache.forEach(file => {
+        const card = document.createElement('div');
+        card.className = 'photo-card';
+
+        const img = document.createElement('img');
+        img.src = file.fileUrl;
+        img.alt = file._title || 'Uploaded file';
+        img.title = "Click to view larger";
+        img.onclick = () => openModal(file.fileUrl);
+
+        const info = document.createElement('div');
+        info.className = 'photo-info';
+
+        const titleInput = document.createElement('input');
+        titleInput.type = 'text';
+        titleInput.value = file._title;
+        titleInput.placeholder = "Title";
+        titleInput.onchange = e => {
+          file._title = e.target.value.trim();
+          // Optionally, update backend here
+        };
+
+        const dateInput = document.createElement('input');
+        dateInput.type = 'datetime-local';
+        const d = new Date(file._date);
+        dateInput.value = d.toISOString().slice(0, 16);
+        dateInput.onchange = e => {
+          file._date = new Date(e.target.value).toISOString();
+          sortFiles();
+          displayPhotos();
+          // Optionally, update backend here
+        };
+
+        const dateDisplay = document.createElement('div');
+        dateDisplay.className = 'date-display';
+        dateDisplay.textContent = formatDateDisplay(file._date);
+
+        const deleteBtn = document.createElement('button');
+        deleteBtn.innerText = 'Delete';
+        deleteBtn.className = 'upload-btn delete-btn';
+        deleteBtn.onclick = () => {
+          if (confirm("Are you sure you want to delete this file? This action cannot be undone.")) {
+            fetch(`/api/files/delete/${file.id}`, {
+              method: 'DELETE',
+              headers: {
+                'x-auth-token': localStorage.getItem('authToken')
+              }
+            })
+            .then(res => res.json())
+            .then(data => {
+              alert(data.msg || "File deleted");
+              fetchFiles();
+            })
+            .catch(err => {
+              console.error('Delete failed:', err);
+              alert('Failed to delete file');
+            });
+          }
+        };
+
+        info.appendChild(titleInput);
+        info.appendChild(dateInput);
+        info.appendChild(dateDisplay);
+        info.appendChild(deleteBtn);
+
+        card.appendChild(img);
+        card.appendChild(info);
+        gallery.appendChild(card);
+      });
+    }
+
+    function openModal(src) {
+      const modal = document.getElementById('imageModal');
+      const modalImg = document.getElementById('modalImg');
+      modalImg.src = src;
+      modal.style.display = 'flex';
+    }
+
+    function closeModal() {
+      const modal = document.getElementById('imageModal');
+      modal.style.display = 'none';
+      document.getElementById('modalImg').src = '';
+    }
+
     function uploadFile() {
       const fileInput = document.getElementById('fileInput');
       const titleInput = document.getElementById('titleInput');
-      
+
       if (!fileInput.files.length) {
-        showWarning("Please select a file.", "File Required");
+        alert("Please select a file");
+        return;
+      }
+
+      if (!titleInput.value.trim()) {
+        alert("Please enter a title");
         return;
       }
 
       const formData = new FormData();
       formData.append('file', fileInput.files[0]);
-      
-      // Add title to form data if provided
-      if (titleInput.value.trim()) {
-        formData.append('title', titleInput.value.trim());
-      }
+      formData.append('title', titleInput.value.trim());
 
       fetch('/api/files/upload', {
         method: 'POST',
@@ -441,203 +489,18 @@
         },
         body: formData
       })
-      .then(res => {
-        if (!res.ok) {
-          throw new Error(`HTTP ${res.status}: ${res.statusText}`);
-        }
-        return res.json();
-      })
+      .then(res => res.json())
       .then(data => {
-        if (data.msg) {
-          showInfo(data.msg);
-        } else if (data.errors && data.errors.length > 0) {
-          showError(data.errors[0].msg, "Upload Failed");
-        } else {
-          showSuccess("File uploaded successfully", "Upload Complete");
-        }
+        alert(data.msg || "Uploaded");
         fileInput.value = '';
         titleInput.value = '';
-        fetchFiles(); // refresh gallery
+        fetchFiles();
       })
       .catch(err => {
-        console.error("Upload error:", err);
-        showError(`Upload failed: ${err.message}`, "Upload Error");
+        alert("Upload failed");
+        console.error(err);
       });
     }
-
-    // Keep track of files
-    let filesCache = [];
-
-    function fetchFiles() {
-      fetch('/api/files/my-files', {
-        headers: {
-          'x-auth-token': localStorage.getItem('authToken')
-        }
-      })
-      .then(res => {
-        if (!res.ok) {
-          throw new Error(`HTTP ${res.status}: ${res.statusText}`);
-        }
-        return res.json();
-      })
-      .then(data => {
-        console.log("Fetched files:", data);
-        filesCache = data;
-
-        // Sort descending by upload date
-        filesCache.sort((a, b) => new Date(b.uploaded_at) - new Date(a.uploaded_at));
-
-        displayFiles(filesCache);
-      })
-      .catch(err => {
-        console.error("Fetch files error:", err);
-        showError(`Failed to load files: ${err.message}`, "Loading Error");
-      });
-    }
-
-    function deleteFile(fileId) {
-      if (!confirm('Are you sure you want to delete this file?')) {
-        return;
-      }
-
-      fetch(`/api/files/delete/${fileId}`, {
-        method: 'DELETE',
-        headers: {
-          'x-auth-token': localStorage.getItem('authToken')
-        }
-      })
-      .then(res => {
-        if (!res.ok) {
-          throw new Error(`HTTP ${res.status}: ${res.statusText}`);
-        }
-        return res.json();
-      })
-      .then(data => {
-        showSuccess(data.msg || "File deleted successfully", "File Deleted");
-        fetchFiles(); // refresh gallery
-      })
-      .catch(err => {
-        console.error("Delete error:", err);
-        showError(`Delete failed: ${err.message}`, "Delete Error");
-      });
-    }
-
-    function downloadFile(fileUrl, fileName) {
-      const link = document.createElement('a');
-      link.href = fileUrl;
-      link.download = fileName;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    }
-
-    // Format date as d/Mon/yyyy (e.g. 1/Jan/2025)
-    function formatDateCustom(dateString) {
-      return formatDateConsistent(dateString);
-    }
-
-    function getFileExtension(filename) {
-      return filename.split('.').pop().toLowerCase();
-    }
-
-    function isImageFile(filename) {
-      const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'svg'];
-      return imageExtensions.includes(getFileExtension(filename));
-    }
-
-    // Modal open and close
-    function openModal(src) {
-      document.getElementById('modalImage').src = src;
-      document.getElementById('modal').style.display = 'flex';
-    }
-
-    function closeModal() {
-      document.getElementById('modal').style.display = 'none';
-      document.getElementById('modalImage').src = '';
-    }
-
-    function displayFiles(files) {
-      const gallery = document.getElementById('fileGallery');
-      gallery.innerHTML = '';
-
-      files.forEach((file, index) => {
-        // Create block container
-        const block = document.createElement('div');
-        block.className = 'file-block';
-
-        // File preview or icon
-        let filePreview;
-        if (isImageFile(file.file_path)) {
-          filePreview = document.createElement('img');
-          filePreview.src = file.fileUrl || `${window.location.origin}/userFiles/${file.file_path}`;
-          filePreview.className = 'file-preview';
-          filePreview.alt = file.title || "Uploaded image";
-          filePreview.title = "Click to view larger";
-          filePreview.addEventListener('click', () => openModal(filePreview.src));
-        } else {
-          filePreview = document.createElement('div');
-          filePreview.className = 'file-icon';
-          filePreview.innerHTML = '📄';
-          filePreview.style.color = '#03c988';
-        }
-
-        // File info container
-        const info = document.createElement('div');
-        info.className = 'file-info';
-
-        // Title
-        const title = document.createElement('div');
-        title.className = 'file-title';
-        title.textContent = file.title || 'No title';
-
-        // File name
-        const fileName = document.createElement('div');
-        fileName.className = 'file-name';
-        fileName.textContent = `File: ${file.file_path}`;
-
-        // Upload date
-        const date = document.createElement('div');
-        date.className = 'file-date';
-        date.textContent = `Uploaded: ${formatDateCustom(file.uploaded_at)}`;
-
-        // Actions container
-        const actions = document.createElement('div');
-        actions.className = 'file-actions';
-
-        // Delete button
-        const deleteBtn = document.createElement('button');
-        deleteBtn.className = 'delete-btn';
-        deleteBtn.textContent = 'Delete';
-        deleteBtn.addEventListener('click', () => deleteFile(file.id));
-
-        // Download button
-        const downloadBtn = document.createElement('button');
-        downloadBtn.className = 'download-btn';
-        downloadBtn.textContent = 'Download';
-        downloadBtn.addEventListener('click', () => {
-          const fileUrl = file.fileUrl || `${window.location.origin}/userFiles/${file.file_path}`;
-          downloadFile(fileUrl, file.file_path);
-        });
-
-        // Append elements
-        info.appendChild(title);
-        info.appendChild(fileName);
-        info.appendChild(date);
-        
-        actions.appendChild(deleteBtn);
-        actions.appendChild(downloadBtn);
-
-        block.appendChild(filePreview);
-        block.appendChild(info);
-        block.appendChild(actions);
-
-        // Add block to gallery
-        gallery.appendChild(block);
-      });
-    }
-
-    // Initial fetch of files
-    fetchFiles();
   </script>
 </body>
 </html>

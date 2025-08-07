@@ -40,12 +40,12 @@ async function initDatabase() {
   `);
 
   await db.query(`
-    CREATE TABLE IF NOT EXISTS trainings (
+    CREATE TABLE IF NOT EXISTS Trainings (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     duration INT NOT NULL,
     number_of_participants INT NOT NULL,
-    schedule_date DATE NOT NULL,
+    schedule_date DATETIME NOT NULL,
     created_at DATE DEFAULT (CURRENT_DATE),
     venue VARCHAR(100) NOT NULL,
     status ENUM('pending', 'completed') DEFAULT 'pending',

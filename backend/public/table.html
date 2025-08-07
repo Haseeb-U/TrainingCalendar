@@ -148,6 +148,94 @@
       color: #a7f3d0;
       font-weight: 700;
     }
+
+    /* Modal Styles */
+    #shareModal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background-color: rgba(0,0,0,0.7);
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+    .modal-content {
+      background-color: #1e1e1e;
+      padding: 20px;
+      border-radius: 8px;
+      width: 90%;
+      max-width: 400px;
+      color: white;
+    }
+    .modal-content h3 {
+      margin-top: 0;
+      color: #03c988;
+      text-align: center;
+    }
+    .modal-content label {
+      display: block;
+      margin-top: 12px;
+      font-weight: 600;
+    }
+    .modal-content input {
+      width: 100%;
+      padding: 8px;
+      margin-top: 6px;
+      background-color: #121212;
+      border: 1px solid #555;
+      border-radius: 6px;
+      color: white;
+      font-size: 14px;
+    }
+    .modal-content button {
+      margin-top: 20px;
+      padding: 12px;
+      width: 100%;
+      background-color: #03c988;
+      border: none;
+      border-radius: 8px;
+      font-weight: 700;
+      cursor: pointer;
+      color: white;
+      font-size: 16px;
+    }
+    .modal-content button.cancel-btn {
+      background-color: #2a2e35;
+      margin-top: 10px;
+    }
+
+    /* Filter container */
+    #filterContainer {
+      margin-bottom: 20px;
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    #filterContainer label {
+      font-weight: 600;
+    }
+    #filterContainer input[type="date"] {
+      padding: 6px;
+      border-radius: 6px;
+      border: 1px solid #555;
+      background-color: #121212;
+      color: white;
+    }
+    #filterContainer button {
+      background-color: #03c988;
+      border: none;
+      color: white;
+      padding: 10px 24px;
+      border-radius: 36px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    #filterContainer button:hover {
+      background-color: #028f63;
+    }
   </style>
 </head>
 <body>
@@ -162,7 +250,7 @@
       <span class="dropdown-btn">User</span>
       <div class="dropdown-content">
         <a href="profile.html">Profile</a>
-        <a href="homepage.html">Logout</a>
+        <a href="#" id="logoutLink">Logout</a>
       </div>
     </div>
   </div>
@@ -170,9 +258,20 @@
 
 <div class="container">
   <h1>Training Sessions Table</h1>
+
+  <!-- Filter -->
+  <div id="filterContainer">
+    <label for="filterStartDate">Start Date:</label>
+    <input type="date" id="filterStartDate" />
+    <label for="filterEndDate">End Date:</label>
+    <input type="date" id="filterEndDate" />
+    <button onclick="applyDateFilter()">Filter</button>
+    <button onclick="clearDateFilter()" style="background:#555;">Clear</button>
+  </div>
+
   <div class="buttons-container">
     <button class="btn-create" onclick="location.href='session.html'">Create Session</button>
-    <button class="btn-create" onclick="shareTable()" title="Share Table">
+    <button class="btn-create" onclick="openShareModal()" title="Share Table">
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="20" height="20" stroke-linecap="round" stroke-linejoin="round">
         <circle cx="18" cy="5" r="3"></circle>
         <circle cx="6" cy="12" r="3"></circle>
@@ -201,107 +300,221 @@
     <tbody id="trainingBody"></tbody>
   </table>
 </div>
-<script src="utils/dateFormatter.js"></script>
+
+<!-- Share Modal -->
+<div id="shareModal">
+  <div class="modal-content">
+    <h3>Share Training Data</h3>
+    <label for="shareEmail">Email:</label>
+    <input type="email" id="shareEmail" placeholder="Enter email" />
+    <label for="shareStartDate">Start Date:</label>
+    <input type="date" id="shareStartDate" />
+    <label for="shareEndDate">End Date:</label>
+    <input type="date" id="shareEndDate" />
+    <button onclick="submitShare()">Share</button>
+    <button class="cancel-btn" onclick="closeShareModal()">Cancel</button>
+  </div>
+</div>
+
 <script>
-function formatDateToLocal(dateStr) {
-  return formatDateConsistent(dateStr);
-}
+  // Redirect if authToken missing
+  if (!localStorage.getItem('authToken')) {
+    window.location.href = 'homepage.html';
+  }
 
-async function fetchTrainings() {
-  const res = await fetch('/api/trainings/my-trainings', {
-    headers: { 'x-auth-token': localStorage.getItem('authToken') }
+  // Logout functionality
+  document.getElementById('logoutLink').addEventListener('click', function(e) {
+    e.preventDefault();
+    localStorage.removeItem('authToken');
+    window.location.href = 'homepage.html';
   });
-  const data = await res.json();
-  const tbody = document.getElementById('trainingBody');
-  tbody.innerHTML = '';
-  data.forEach(training => {
-    const row = document.createElement('tr');
-    // Add class if status is 'completed'
-    const rowClass = training.status === 'completed' ? 'status-completed' : '';
-    row.className = rowClass;
 
-    row.innerHTML = `
-      <td class="checkbox-cell"><input type="checkbox" class="session-check" onchange="toggleStatus(${training.id}, this.checked)" ${training.status === 'completed' ? 'checked' : ''}></td>
-      <td class="edit-cell">
-        <button class="btn-edit" onclick="location.href='edit.html?id=${training.id}'" title="Edit">✏️</button>
-      </td>
-      <td class="delete-cell"><button class="btn-delete" onclick="deleteTraining(${training.id})" title="Delete">🗑️</button></td>
-      <td>${training.name}</td>
-      <td>${formatDateToLocal(training.schedule_date)}</td>
-      <td class="duration">${training.duration}</td>
-      <td>${training.venue}</td>
-      <td class="participants">${training.number_of_participants}</td>
-      <td>${training.status}</td>
-    `;
-    tbody.appendChild(row);
-  });
-  updateSummary();
-}
+  let allTrainings = [];
 
-function deleteTraining(id) {
-  fetch(`/api/trainings/${id}`, {
-    method: 'DELETE',
-    headers: { 'x-auth-token': localStorage.getItem('authToken') }
-  })
-  .then(res => res.json())
-  .then(() => fetchTrainings());
-}
-
-function toggleStatus(id, complete) {
-  fetch('/api/trainings/status', {
-    method: 'PATCH',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-auth-token': localStorage.getItem('authToken')
-    },
-    body: JSON.stringify({ training_id: id, status: complete ? 'completed' : 'pending' })
-  }).then(() => fetchTrainings());
-}
-
-function updateSummary() {
-  const rows = document.querySelectorAll("tbody tr");
-  let total = 0, actual = 0;
-  rows.forEach(row => {
-    const participants = parseFloat(row.querySelector(".participants")?.textContent) || 0;
-    const duration = parseFloat(row.querySelector(".duration")?.textContent) || 0;
-    const isChecked = row.querySelector(".session-check")?.checked;
-    total += participants * duration;
-    if (isChecked) actual += participants * duration;
-  });
-  const percent = total ? ((actual / total) * 100).toFixed(1) : 0;
-  document.getElementById("summaryDisplay").textContent =
-    `Total Hours: ${total.toFixed(1)} | Actual Hours: ${actual.toFixed(1)} | Percentage: ${percent}%`;
-}
-
-function shareTable() {
-  const email = prompt("Enter email to share training data:");
-  const startDate = prompt("Start Date (e.g., 01/Aug/2022):");
-  const endDate = prompt("End Date (e.g., 31/Aug/2022):");
-  if (!email || !startDate || !endDate) return;
-
-  fetch('/api/trainings/shareTrainingData', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-auth-token': localStorage.getItem('authToken')
-    },
-    body: JSON.stringify({ email, startDate, endDate })
-  })
-  .then(res => res.json())
-  .then(data => {
-    if (data.msg && data.msg.includes('success')) {
-      showSuccess(data.msg, 'Share Complete');
-    } else if (data.errors && data.errors.length > 0) {
-      showError(data.errors[0].msg, 'Share Failed');
-    } else {
-      showInfo(data.msg || 'Request processed', 'Share Status');
+  function formatDateToDDMonYYYY(dateStr) {
+    if (!dateStr) return '';
+    const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+    let date = new Date(dateStr);
+    if (isNaN(date.getTime())) {
+      date = new Date(dateStr + 'T00:00:00Z');
     }
-  });
-}
+    if (isNaN(date.getTime())) return '';
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = months[date.getMonth()];
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+  }
 
-fetchTrainings();
+  // Fetch and display trainings
+  async function fetchTrainings() {
+    const res = await fetch('/api/trainings/my-trainings', {
+      headers: { 'x-auth-token': localStorage.getItem('authToken') }
+    });
+    const data = await res.json();
+    allTrainings = data;
+    displayTrainings(allTrainings);
+  }
+
+  function displayTrainings(trainings) {
+    const tbody = document.getElementById('trainingBody');
+    tbody.innerHTML = '';
+
+    // Sort trainings by schedule_date descending
+    trainings.sort((a,b) => new Date(b.schedule_date) - new Date(a.schedule_date));
+
+    trainings.forEach(training => {
+      const row = document.createElement('tr');
+      // Add class if status is 'completed'
+      const rowClass = training.status === 'completed' ? 'status-completed' : '';
+      row.className = rowClass;
+
+      row.innerHTML = `
+        <td class="checkbox-cell"><input type="checkbox" class="session-check" onchange="toggleStatus(${training.id}, this.checked)" ${training.status === 'completed' ? 'checked' : ''}></td>
+        <td class="edit-cell">
+          <button class="btn-edit" onclick="location.href='edit.html?id=${training.id}'" title="Edit">✏️</button>
+        </td>
+        <td class="delete-cell"><button class="btn-delete" onclick="deleteTraining(${training.id})" title="Delete">🗑️</button></td>
+        <td>${training.name}</td>
+        <td>${formatDateToDDMonYYYY(training.schedule_date)}</td>
+        <td class="duration">${training.duration}</td>
+        <td>${training.venue}</td>
+        <td class="participants">${training.number_of_participants}</td>
+        <td>${training.status}</td>
+      `;
+      tbody.appendChild(row);
+    });
+    updateSummary();
+  }
+
+  function deleteTraining(id) {
+    fetch(`/api/trainings/${id}`, {
+      method: 'DELETE',
+      headers: { 'x-auth-token': localStorage.getItem('authToken') }
+    })
+    .then(res => res.json())
+    .then(() => fetchTrainings());
+  }
+
+  function toggleStatus(id, complete) {
+    fetch('/api/trainings/status', {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-auth-token': localStorage.getItem('authToken')
+      },
+      body: JSON.stringify({ training_id: id, status: complete ? 'completed' : 'pending' })
+    }).then(() => fetchTrainings());
+  }
+
+  function updateSummary() {
+    const rows = document.querySelectorAll("tbody tr");
+    let total = 0, actual = 0;
+    rows.forEach(row => {
+      const participants = parseFloat(row.querySelector(".participants")?.textContent) || 0;
+      const duration = parseFloat(row.querySelector(".duration")?.textContent) || 0;
+      const isChecked = row.querySelector(".session-check")?.checked;
+      total += participants * duration;
+      if (isChecked) actual += participants * duration;
+    });
+    const percent = total ? ((actual / total) * 100).toFixed(1) : 0;
+    document.getElementById("summaryDisplay").textContent =
+      `Total Hours: ${total.toFixed(1)} | Actual Hours: ${actual.toFixed(1)} | Percentage: ${percent}%`;
+  }
+
+  function openShareModal() {
+    document.getElementById('shareModal').style.display = 'flex';
+  }
+
+  function closeShareModal() {
+    document.getElementById('shareModal').style.display = 'none';
+  }
+
+  function submitShare() {
+    const email = document.getElementById('shareEmail').value.trim();
+    const startDate = document.getElementById('shareStartDate').value;
+    const endDate = document.getElementById('shareEndDate').value;
+
+    if (!email) {
+      alert('Please enter an email.');
+      return;
+    }
+    if (!startDate) {
+      alert('Please select a start date.');
+      return;
+    }
+    if (!endDate) {
+      alert('Please select an end date.');
+      return;
+    }
+    if (startDate > endDate) {
+      alert('Start date cannot be after end date.');
+      return;
+    }
+
+    function formatDateForApi(isoDateStr) {
+      if (!isoDateStr) return '';
+      const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+      const d = new Date(isoDateStr);
+      if (isNaN(d)) return '';
+      const day = String(d.getDate()).padStart(2, '0');
+      const month = months[d.getMonth()];
+      const year = d.getFullYear();
+      return `${day}/${month}/${year}`;
+    }
+
+    fetch('/api/trainings/shareTrainingData', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-auth-token': localStorage.getItem('authToken')
+      },
+      body: JSON.stringify({ 
+        email, 
+        startDate: formatDateForApi(startDate), 
+        endDate: formatDateForApi(endDate) 
+      })
+    })
+    .then(res => res.json())
+    .then(data => {
+      alert(data.msg || data.errors?.[0]?.msg || 'Shared successfully.');
+      closeShareModal();
+    })
+    .catch(() => {
+      alert('Failed to share data.');
+    });
+  }
+
+  // Filter function to show only trainings within selected date range
+  function applyDateFilter() {
+    const startDateStr = document.getElementById('filterStartDate').value;
+    const endDateStr = document.getElementById('filterEndDate').value;
+
+    if (startDateStr && endDateStr && startDateStr > endDateStr) {
+      alert('Start date cannot be after end date.');
+      return;
+    }
+
+    let filtered = allTrainings;
+
+    if (startDateStr) {
+      const startDate = new Date(startDateStr);
+      filtered = filtered.filter(t => new Date(t.schedule_date) >= startDate);
+    }
+    if (endDateStr) {
+      const endDate = new Date(endDateStr);
+      filtered = filtered.filter(t => new Date(t.schedule_date) <= endDate);
+    }
+
+    displayTrainings(filtered);
+  }
+
+  function clearDateFilter() {
+    document.getElementById('filterStartDate').value = '';
+    document.getElementById('filterEndDate').value = '';
+    displayTrainings(allTrainings);
+  }
+
+  fetchTrainings();
 </script>
-
-<script src="utils/notifications.js"></script>
 </body>
 </html>

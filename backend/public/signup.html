@@ -118,21 +118,17 @@
       .then(res => res.json())
       .then(data => {
         if (data.msg) {
-          showSuccess('Registered successfully! Redirecting to login...', 'Registration Complete');
-          setTimeout(() => {
-            window.location.href = 'login.html';
-          }, 2000);
+          alert('Registered successfully!');
+          window.location.href = 'login.html';
         } else {
-          showError(data.errors?.[0]?.msg || 'Registration failed.', 'Registration Failed');
+          alert(data.errors?.[0]?.msg || 'Registration failed.');
         }
       })
       .catch(err => {
         console.error('Registration failed:', err);
-        showError('Something went wrong. Please try again.', 'Connection Error');
+        alert('Something went wrong. Please try again.');
       });
     });
   </script>
-
-  <script src="utils/notifications.js"></script>
 </body>
 </html>

@@ -1,13 +1,21 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
   <title>User Profile</title>
-  <style>
-    * {
-      box-sizing: border-box;
-    }
 
+  <!-- 🔐 Login Check Script -->
+  <script>
+    const token = localStorage.getItem("authToken");
+    if (!token) {
+      window.location.href = "login.html";
+    }
+  </script>
+
+  <style>
+    /* [Same styles as before, unchanged] */
+    * { box-sizing: border-box; }
     body {
       margin: 0;
       font-family: 'Segoe UI', sans-serif;
@@ -15,7 +23,6 @@
       color: white;
       padding: 0;
     }
-
     nav {
       background-color: #1e1e1e;
       padding: 16px 32px;
@@ -25,17 +32,14 @@
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
       position: relative;
     }
-
     .nav-title {
       font-size: 20px;
       font-weight: bold;
       color: #03c988;
     }
-
     .nav-links {
       position: relative;
     }
-
     .nav-links a, .dropdown-btn {
       margin-left: 20px;
       text-decoration: none;
@@ -43,16 +47,13 @@
       font-weight: 500;
       cursor: pointer;
     }
-
     .nav-links a:hover, .dropdown-btn:hover {
       color: #03c988;
     }
-
     .dropdown {
       position: relative;
       display: inline-block;
     }
-
     .dropdown-content {
       display: none;
       position: absolute;
@@ -62,23 +63,19 @@
       z-index: 1;
       right: 0;
     }
-
     .dropdown-content a {
       color: #d1d5db;
       padding: 10px 16px;
       text-decoration: none;
       display: block;
     }
-
     .dropdown-content a:hover {
       background-color: #2a2e35;
       color: #03c988;
     }
-
     .dropdown:hover .dropdown-content {
       display: block;
     }
-
     .container {
       max-width: 600px;
       margin: 60px auto;
@@ -87,7 +84,6 @@
       border-radius: 12px;
       box-shadow: 0 0 15px white;
     }
-
     .profile-header {
       font-size: 26px;
       font-weight: bold;
@@ -95,29 +91,24 @@
       text-align: center;
       color: #34d399;
     }
-
     .info {
       margin-bottom: 25px;
     }
-
     .info label {
       display: block;
       font-weight: bold;
       margin-bottom: 6px;
       color: #d1d5db;
     }
-
     .info span {
       display: block;
       color: #9ca3af;
       font-size: 16px;
     }
-
     .change-password {
       text-align: center;
       margin-top: 30px;
     }
-
     .change-password button {
       background-color: #03c988;
       color: white;
@@ -130,11 +121,9 @@
       transition: box-shadow 0.3s;
       box-shadow: 0 0 8px white;
     }
-
     .change-password button:hover {
       box-shadow: 0 0 12px #ffffff;
     }
-
     /* Modal */
     #passwordModal {
       display: none;
@@ -146,7 +135,6 @@
       align-items: center;
       z-index: 1000;
     }
-
     .modal-content {
       background-color: #1e1e1e;
       padding: 20px;
@@ -154,7 +142,6 @@
       width: 90%;
       max-width: 400px;
     }
-
     .modal-content input {
       width: 100%;
       padding: 10px;
@@ -164,36 +151,9 @@
       color: white;
       border-radius: 6px;
     }
-
     .modal-content button {
       margin-top: 15px;
       width: 100%;
-      padding: 12px 24px;
-      font-size: 16px;
-      font-weight: bold;
-      border-radius: 8px;
-      border: none;
-      cursor: pointer;
-      transition: box-shadow 0.3s;
-    }
-
-    .modal-content button:first-of-type {
-      background-color: #03c988;
-      color: white;
-      box-shadow: 0 0 8px white;
-    }
-
-    .modal-content button:first-of-type:hover {
-      box-shadow: 0 0 12px #ffffff;
-    }
-
-    .modal-content button:last-of-type {
-      background-color: #2a2e35;
-      color: white;
-    }
-
-    .modal-content button:last-of-type:hover {
-      background-color: #3a3e45;
     }
   </style>
 </head>
@@ -201,20 +161,20 @@
 
   <!-- Navbar -->
   <nav>
-  <div class="nav-title">Training Horizon</div>
-  <div class="nav-links">
-    <a href="table.html">My Trainings</a>
-    <a href="main.html">Calendar</a>
-    <a href="records.html">Records</a>
-    <div class="dropdown">
-      <span class="dropdown-btn">User</span>
-      <div class="dropdown-content">
-        <a href="profile.html">Profile</a>
-        <a href="homepage.html">Logout</a>
+    <div class="nav-title">Training Horizon</div>
+    <div class="nav-links">
+      <a href="table.html">My Trainings</a>
+      <a href="main.html">Calendar</a>
+      <a href="records.html">Records</a>
+      <div class="dropdown">
+        <span class="dropdown-btn">User</span>
+        <div class="dropdown-content">
+          <a href="profile.html">Profile</a>
+          <a href="homepage.html" onclick="logout()">Logout</a>
+        </div>
       </div>
     </div>
-  </div>
-</nav>
+  </nav>
 
   <!-- Profile Container -->
   <div class="container">
@@ -247,7 +207,7 @@
       <input type="password" id="oldPassword" placeholder="Current Password" />
       <input type="password" id="newPassword" placeholder="New Password" />
       <button onclick="changePassword()">Submit</button>
-      <button onclick="closePasswordModal()">Cancel</button>
+      <button onclick="closePasswordModal()" style="margin-top:10px;background-color:#2a2e35;">Cancel</button>
     </div>
   </div>
 
@@ -265,7 +225,7 @@
       document.getElementById('user-id').innerText = data.employee_no;
     })
     .catch(err => {
-      showError("Failed to load profile", "Profile Error");
+      alert("Failed to load profile");
       console.error(err);
     });
 
@@ -291,20 +251,19 @@
       })
       .then(res => res.json())
       .then(data => {
-        if (data.msg || (data.errors && data.errors.length === 0)) {
-          showSuccess(data.msg || 'Password updated successfully', 'Password Changed');
-        } else {
-          showError(data.errors?.[0]?.msg || 'Password update failed', 'Update Failed');
-        }
+        alert(data.msg || data.errors?.[0]?.msg || 'Password updated');
         closePasswordModal();
       })
       .catch(err => {
-        showError('Password update failed', 'Update Error');
+        alert('Password update failed');
         console.error(err);
       });
     }
-  </script>
 
-  <script src="utils/notifications.js"></script>
+    function logout() {
+      localStorage.removeItem('authToken');
+      window.location.href = 'login.html';
+    }
+  </script>
 </body>
 </html>

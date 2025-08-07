@@ -11,8 +11,8 @@ router.post(
     jwtTokenDecoder,
     [
       check('email', 'Valid recipient email required').isEmail(),
-      check('startDate', 'Valid start date required (e.g. 1/Jan/2025)').matches(/^\d{1,2}\/[A-Za-z]{3}\/\d{4}$/),
-      check('endDate', 'Valid end date required (e.g. 1/Jan/2025)').matches(/^\d{1,2}\/[A-Za-z]{3}\/\d{4}$/),
+      check('startDate', 'Valid start date required (e.g. 13/Jul/2022)').matches(/^\d{2}\/[A-Za-z]{3}\/\d{4}$/),
+      check('endDate', 'Valid end date required (e.g. 20/Jul/2022)').matches(/^\d{2}\/[A-Za-z]{3}\/\d{4}$/),
     ],
   ],
   async (req, res) => {
@@ -22,15 +22,14 @@ router.post(
     const userId = req.user.id;
     const { email, startDate, endDate } = req.body;
 
-    // Helper to parse d/MMM/yyyy to YYYY-MM-DD
+    // Helper to parse DD/MMM/YYYY to YYYY-MM-DD
     function parseDate(str) {
       const months = {
         Jan: '01', Feb: '02', Mar: '03', Apr: '04', May: '05', Jun: '06',
         Jul: '07', Aug: '08', Sep: '09', Oct: '10', Nov: '11', Dec: '12'
       };
       const [day, mon, year] = str.split('/');
-      const paddedDay = day.padStart(2, '0'); // Pad single digit days
-      return `${year}-${months[mon]}-${paddedDay}`;
+      return `${year}-${months[mon]}-${day}`;
     }
 
     try {
@@ -46,7 +45,7 @@ router.post(
       const sql = `
         SELECT name, duration, number_of_participants, schedule_date, venue, status, training_hours
         FROM Trainings
-        WHERE user_id = ? AND schedule_date BETWEEN ? AND ?
+        WHERE user_id = ? AND DATE(schedule_date) BETWEEN ? AND ?
       `;
       const [trainings] = await req.app.locals.db.query(
         sql,
