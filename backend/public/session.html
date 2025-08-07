@@ -273,6 +273,27 @@
       }
 
       const realDate = document.getElementById('realDate').value;
+      
+      // Convert the local datetime to the correct format without timezone conversion
+      let scheduleDate = realDate;
+      if (realDate) {
+        // Add seconds if not present and ensure it's treated as local time
+        if (realDate.length === 16) {
+          scheduleDate = realDate + ':00';
+        }
+        // Create date object and format it properly to avoid timezone issues
+        const localDate = new Date(scheduleDate);
+        // Format as YYYY-MM-DD HH:MM:SS to send exact local time
+        const year = localDate.getFullYear();
+        const month = String(localDate.getMonth() + 1).padStart(2, '0');
+        const day = String(localDate.getDate()).padStart(2, '0');
+        const hours = String(localDate.getHours()).padStart(2, '0');
+        const minutes = String(localDate.getMinutes()).padStart(2, '0');
+        const seconds = String(localDate.getSeconds()).padStart(2, '0');
+        
+        scheduleDate = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+      }
+      
       const name = document.getElementById('name').value.trim();
       const duration = Number(durationInput.value);
       const participants = Number(participantsInput.value);
@@ -296,7 +317,7 @@
         name,
         duration,
         number_of_participants: participants,
-        schedule_date: realDate,
+        schedule_date: scheduleDate,
         venue,
         training_hours: hours,
         notification_recipients: JSON.stringify(emails),

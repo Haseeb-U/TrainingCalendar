@@ -5,9 +5,12 @@ const path = require('path');
 const fs = require('fs');
 const jwtTokenDecoder = require('../../middleware/jwtTokenDecoder');
 
-// Sanitize filename to remove spaces and unsafe characters
+// Sanitize filename to remove unsafe characters but preserve readability
 function sanitizeFilename(filename) {
-  return filename.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_\.-]/g, '');
+  return filename
+    .replace(/[\/\\:*?"<>|]/g, '-') // Replace unsafe chars with dash
+    .replace(/\s+/g, ' ') // Keep single spaces
+    .trim();
 }
 
 // Set up storage for uploaded files
@@ -30,7 +33,6 @@ router.post('/upload', jwtTokenDecoder, upload.single('file'), async (req, res) 
   }
 
   const userId = req.user.id;
-  const fileName = req.file.filename;
   const trainingId = req.body.training_id;
 
   if (!trainingId) {
@@ -38,23 +40,48 @@ router.post('/upload', jwtTokenDecoder, upload.single('file'), async (req, res) 
   }
 
   try {
-    // Verify training exists and user has access to it
+    // Get training details and user name
     const [training] = await req.app.locals.db.query(
-      'SELECT id FROM Trainings WHERE id = ?',
-      [trainingId]
+      'SELECT t.id, t.name, t.schedule_date, u.name as user_name FROM Trainings t JOIN users u ON u.id = ? WHERE t.id = ?',
+      [userId, trainingId]
     );
 
     if (training.length === 0) {
       return res.status(404).json({ msg: 'Training not found' });
     }
 
+    // Format the training date
+    const scheduleDate = new Date(training[0].schedule_date);
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const day = scheduleDate.getDate();
+    const month = months[scheduleDate.getMonth()];
+    const year = scheduleDate.getFullYear();
+    const hours = scheduleDate.getHours();
+    const minutes = scheduleDate.getMinutes();
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    const formattedHours = hours % 12 || 12;
+    const formattedMinutes = minutes.toString().padStart(2, '0');
+    const formattedDateTime = `${day}-${month}-${year} ${formattedHours}.${formattedMinutes}${ampm}`;
+
+    // Get file extension
+    const fileExtension = path.extname(req.file.originalname);
+    
+    // Create new filename in format: [training title] by [user] [scheduled training date time]
+    const newFileName = sanitizeFilename(`${training[0].name} by ${training[0].user_name} ${formattedDateTime}${fileExtension}`);
+    
+    // Rename the file
+    const oldPath = req.file.path;
+    const newPath = path.join(path.dirname(oldPath), newFileName);
+    
+    fs.renameSync(oldPath, newPath);
+
     await req.app.locals.db.query(
       'INSERT INTO user_files (user_id, training_id, file_path) VALUES (?, ?, ?)',
-      [userId, trainingId, fileName]
+      [userId, trainingId, newFileName]
     );
     res.status(201).json({
       msg: 'File uploaded successfully',
-      fileUrl: `/userFiles/${fileName}`,
+      fileUrl: `/userFiles/${newFileName}`,
       training_id: trainingId
     });
   } catch (err) {

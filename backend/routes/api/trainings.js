@@ -83,8 +83,25 @@ router.post(
                 recipients.push(userEmail);
             }
 
-            // Format datetime to MySQL DATETIME format
-            const formattedDateTime = new Date(schedule_date).toISOString().slice(0, 19).replace('T', ' ');            const training = {
+            // Format datetime to MySQL DATETIME format without timezone conversion
+            let formattedDateTime;
+            if (schedule_date.includes('T')) {
+                // If it's an ISO string, convert to MySQL format
+                formattedDateTime = schedule_date.slice(0, 19).replace('T', ' ');
+            } else if (schedule_date.includes(' ')) {
+                // If it's already in YYYY-MM-DD HH:MM:SS format, use as is
+                formattedDateTime = schedule_date;
+            } else {
+                // Fallback: try to parse and format
+                const date = new Date(schedule_date);
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                const hours = String(date.getHours()).padStart(2, '0');
+                const minutes = String(date.getMinutes()).padStart(2, '0');
+                const seconds = String(date.getSeconds()).padStart(2, '0');
+                formattedDateTime = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+            }            const training = {
                 name,
                 duration,
                 number_of_participants,
@@ -212,8 +229,25 @@ router.patch(
                 recipients.push(userEmail);
             }
 
-            // Format datetime to MySQL DATETIME format
-            const formattedDateTime = new Date(schedule_date).toISOString().slice(0, 19).replace('T', ' ');
+            // Format datetime to MySQL DATETIME format without timezone conversion
+            let formattedDateTime;
+            if (schedule_date.includes('T')) {
+                // If it's an ISO string, convert to MySQL format
+                formattedDateTime = schedule_date.slice(0, 19).replace('T', ' ');
+            } else if (schedule_date.includes(' ')) {
+                // If it's already in YYYY-MM-DD HH:MM:SS format, use as is
+                formattedDateTime = schedule_date;
+            } else {
+                // Fallback: try to parse and format
+                const date = new Date(schedule_date);
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                const hours = String(date.getHours()).padStart(2, '0');
+                const minutes = String(date.getMinutes()).padStart(2, '0');
+                const seconds = String(date.getSeconds()).padStart(2, '0');
+                formattedDateTime = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+            }
             
             const training = {
                 name,
