@@ -2,8 +2,11 @@ const express = require('express');
 const router = express.Router();
 const { check, validationResult } = require('express-validator');
 const jwtTokenDecoder = require('../../middleware/jwtTokenDecoder');
-const { sendTrainingNotification } = require('../../mail/email');
+const { sendTrainingDataShareEmail } = require('../../mail/email');
 const { format } = require('@fast-csv/format');
+const archiver = require('archiver');
+const fs = require('fs');
+const path = require('path');
 
 router.post(
   '/shareTrainingData',
@@ -43,7 +46,7 @@ router.post(
 
       // Fetch trainings in date range
       const sql = `
-        SELECT name, duration, number_of_participants, schedule_date, venue, status, training_hours
+        SELECT id, name, duration, number_of_participants, schedule_date, venue, status, training_hours
         FROM Trainings
         WHERE user_id = ? AND DATE(schedule_date) BETWEEN ? AND ?
       `;
@@ -53,42 +56,111 @@ router.post(
       );
       if (!trainings.length) return res.status(404).json({ msg: 'No trainings found in date range' });
 
-      // Convert to CSV
+      // Convert to CSV with custom column names
       let csv = '';
-      const csvStream = format({ headers: true });
+      const csvStream = format({ 
+        headers: ['Name', 'Duration', 'Total_Participants', 'Scheduled_Date', 'Venue', 'Status', 'Training_Hours']
+      });
       csvStream.on('data', chunk => { csv += chunk.toString(); });
-      trainings.forEach(row => csvStream.write(row));
+      
+      // Map database fields to custom column structure
+      trainings.forEach(row => {
+        // Format the schedule_date to the desired format
+        const scheduleDate = new Date(row.schedule_date);
+        const options = { 
+          weekday: 'short', 
+          year: 'numeric', 
+          month: 'short', 
+          day: '2-digit' 
+        };
+        const datePart = scheduleDate.toLocaleDateString('en-US', options);
+        const hours = scheduleDate.getHours();
+        const minutes = scheduleDate.getMinutes();
+        const ampm = hours >= 12 ? 'PM' : 'AM';
+        const formattedHours = hours % 12 || 12;
+        const formattedMinutes = minutes.toString().padStart(2, '0');
+        const formattedDateTime = `${datePart} ${formattedHours}:${formattedMinutes}${ampm}`;
+
+        csvStream.write([
+          row.name,
+          row.duration,
+          row.number_of_participants,
+          formattedDateTime, // Use formatted date instead of raw schedule_date
+          row.venue,
+          row.status,
+          row.training_hours
+        ]);
+      });
       csvStream.end();
 
       await new Promise(resolve => csvStream.on('end', resolve));
 
-      // Prepare email body
-      const userInfoText = `
-User Info:
-Name: ${userInfo.name}
-Email: ${userInfo.email}
-      `;
-      const trainingSummary = `Total Trainings: ${trainings.length}`;
-      const emailBody = `
-${userInfoText}
+      // Get all training IDs for file lookup
+      const trainingIds = trainings.map(training => training.id);
+      
+      // Fetch files related to these trainings from the database
+      let trainingFiles = [];
+      if (trainingIds.length > 0) {
+        const placeholders = trainingIds.map(() => '?').join(',');
+        const [files] = await req.app.locals.db.query(
+          `SELECT uf.*, t.name as training_name 
+           FROM user_files uf 
+           JOIN trainings t ON uf.training_id = t.id 
+           WHERE uf.training_id IN (${placeholders}) 
+           AND uf.user_id = ?`,
+          [...trainingIds, userId]
+        );
+        
+        // Map the database files to our expected format
+        trainingFiles = files.map(file => ({
+          filename: file.file_path,
+          original_name: file.file_path,
+          training_id: file.training_id,
+          training_name: file.training_name,
+          file_path: path.join(__dirname, '../../userFiles', file.file_path)
+        }));
+      }
 
-${trainingSummary}
+      // Create zip file with training files
+      let zipBuffer = null;
+      const zipFileName = `Training_Files_${userInfo.name.replace(/\s+/g, '_')}_${startDate.replace(/\//g, '-')}_to_${endDate.replace(/\//g, '-')}.zip`;
+      
+      if (trainingFiles.length > 0) {
+        zipBuffer = await createTrainingFilesZip(trainingFiles, userInfo.name);
+      }
 
-Trainings from ${startDate} to ${endDate}
+      // Prepare enhanced email content and send
+      const fileName = `Training_Report_${userInfo.name.replace(/\s+/g, '_')}_${startDate.replace(/\//g, '-')}_to_${endDate.replace(/\//g, '-')}.csv`;
+      
+      const reportData = {
+        userName: userInfo.name,
+        userEmail: userInfo.email,
+        startDate,
+        endDate,
+        totalTrainings: trainings.length,
+        trainings: trainings,
+        fileName,
+        totalFiles: trainingFiles.length,
+        hasFiles: trainingFiles.length > 0
+      };
 
-Please find attached your training data as CSV.
-      `;
-
-      // Send email with CSV attachment
-      await sendTrainingNotification(
-        email,
-        'Shared Training Data',
-        emailBody,
+      // Prepare attachments array
+      const attachments = [
         {
-          filename: `trainings by ${userInfo.name}.csv`,
+          filename: fileName,
           content: csv,
         }
-      );
+      ];
+
+      // Add zip file if there are training files
+      if (zipBuffer) {
+        attachments.push({
+          filename: zipFileName,
+          content: zipBuffer,
+        });
+      }
+
+      await sendTrainingDataShareEmail(email, reportData, attachments);
 
       res.json({ msg: 'Training data sent successfully' });
     } catch (err) {
@@ -97,5 +169,70 @@ Please find attached your training data as CSV.
     }
   }
 );
+
+// Helper function to create zip file with training files
+async function createTrainingFilesZip(trainingFiles, userName) {
+  return new Promise((resolve, reject) => {
+    const archive = archiver('zip', {
+      zlib: { level: 9 } // Maximum compression
+    });
+    
+    const chunks = [];
+    
+    archive.on('data', (chunk) => {
+      chunks.push(chunk);
+    });
+    
+    archive.on('end', () => {
+      const zipBuffer = Buffer.concat(chunks);
+      resolve(zipBuffer);
+    });
+    
+    archive.on('error', (err) => {
+      reject(err);
+    });
+
+    // Group files by training
+    const filesByTraining = {};
+    trainingFiles.forEach(file => {
+      const trainingName = file.training_name.replace(/[^a-zA-Z0-9\s]/g, '').replace(/\s+/g, '_');
+      if (!filesByTraining[trainingName]) {
+        filesByTraining[trainingName] = [];
+      }
+      filesByTraining[trainingName].push(file);
+    });
+
+    // Add files to zip organized by training folders
+    Object.keys(filesByTraining).forEach(trainingName => {
+      filesByTraining[trainingName].forEach(file => {
+        // Check if file exists before adding to zip
+        if (fs.existsSync(file.file_path)) {
+          const originalName = file.original_name || file.filename;
+          archive.file(file.file_path, { 
+            name: `${trainingName}/${originalName}` 
+          });
+        }
+      });
+    });
+
+    // Add a readme file explaining the contents
+    const readmeContent = `Training Files Archive
+Generated on: ${new Date().toLocaleString()}
+User: ${userName}
+
+This archive contains all files related to your training sessions within the specified date range.
+Files are organized by training name in separate folders.
+
+Training Sessions Included:
+${Object.keys(filesByTraining).map(training => `- ${training.replace(/_/g, ' ')}`).join('\n')}
+
+Total Files: ${trainingFiles.length}
+`;
+    
+    archive.append(readmeContent, { name: 'README.txt' });
+    
+    archive.finalize();
+  });
+}
 
 module.exports = router;

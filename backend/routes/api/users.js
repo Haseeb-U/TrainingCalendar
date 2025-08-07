@@ -5,6 +5,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
 const jwtTokenDecoder = require('../../middleware/jwtTokenDecoder');
+const { sendWelcomeEmail } = require('../../mail/email');
 
 // route to handle user register requests
 // POST /api/users
@@ -47,6 +48,19 @@ router.post(
                 'INSERT INTO users (name, email, employee_no, password) VALUES (?, ?, ?, ?)',
                 [name, email, employee_no, hashedPassword]
             );
+
+            // Send beautiful welcome email
+            try {
+                await sendWelcomeEmail({
+                    name,
+                    email,
+                    employee_no
+                });
+                console.log(`✅ Welcome email sent to ${email}`);
+            } catch (emailError) {
+                console.error('❌ Failed to send welcome email:', emailError);
+                // Don't fail registration if email fails
+            }
 
             res.status(201).json({
                 msg: 'User registered successfully',

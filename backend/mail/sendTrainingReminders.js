@@ -1,13 +1,14 @@
 const { initDatabase } = require('../DB/mysql');
-const { sendTrainingNotification } = require('./email');
+const { sendTrainingReminderEmail } = require('./email');
 
 async function sendReminders() {
   console.log('=== REMINDER FUNCTION STARTED ===');
   const db = await initDatabase();
   
-  // Get trainings scheduled within next 2 days and not completed
+  // Get trainings scheduled within next 2 days and not completed with additional details
   const [trainings] = await db.query(
-    `SELECT id, name, schedule_date, notification_recipients 
+    `SELECT id, name, schedule_date, notification_recipients, venue, duration, 
+            training_hours, number_of_participants, status 
      FROM trainings 
      WHERE status = 'pending' 
        AND schedule_date BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 2 DAY)`
@@ -39,12 +40,17 @@ async function sendReminders() {
       continue;
     }
 
-    const subject = `Upcoming Training: ${training.name}`;
-    const text = `Reminder: The training "${training.name}" is scheduled on ${training.schedule_date}.`;
-
     try {
-      await sendTrainingNotification(recipients.join(','), subject, text);
-      console.log(`✅ Sent reminder for training ${training.id}`);
+      await sendTrainingReminderEmail(recipients.join(','), {
+        name: training.name,
+        schedule_date: training.schedule_date,
+        venue: training.venue,
+        duration: training.duration,
+        training_hours: training.training_hours,
+        number_of_participants: training.number_of_participants,
+        status: training.status
+      });
+      console.log(`✅ Sent beautiful reminder email for training ${training.id}`);
     } catch (err) {
       console.log(`❌ Failed to send reminder for training ${training.id}:`, err.message);
     }

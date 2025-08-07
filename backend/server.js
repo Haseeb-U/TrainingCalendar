@@ -38,8 +38,8 @@ app.use('/api/files', require('./routes/api/files'));
   const db = await initDatabase();
   app.locals.db = db;
 
-  // Schedule to run every day at 8am
-  cron.schedule('0 8 * * *', () => {
+  // Schedule to run every day at 9am
+  cron.schedule('0 9 * * *', () => {
     sendReminders();
   });
 

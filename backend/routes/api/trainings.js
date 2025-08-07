@@ -4,7 +4,7 @@ const { check, validationResult } = require('express-validator');
 const jwt = require('jsonwebtoken');
 // require('dotenv').config();
 const jwtTokenDecoder = require('../../middleware/jwtTokenDecoder');
-const { sendTrainingNotification } = require('../../mail/email');
+const { sendNewTrainingNotificationEmail } = require('../../mail/email');
 
 
 // route to handle training creation requests
@@ -127,18 +127,23 @@ router.post(
             if (daysDiff <= 2 && daysDiff >= 0) {
                 try {
                     if (Array.isArray(recipients) && recipients.length > 0) {
-                        const subject = `New Training Scheduled: ${name}`;
-                        const text = `A new training "${name}" has been scheduled for ${scheduleDate.toLocaleDateString()}.`;
-                        
                         for (const email of recipients) {
                             if (email && email.trim()) {
-                                await sendTrainingNotification(email.trim(), subject, text);
+                                await sendNewTrainingNotificationEmail(email.trim(), {
+                                    name,
+                                    schedule_date: formattedDateTime,
+                                    venue,
+                                    duration,
+                                    training_hours,
+                                    number_of_participants,
+                                    status
+                                });
                             }
                         }
-                        console.log('Immediate notifications sent for new training');
+                        console.log('✅ Beautiful immediate notifications sent for new training');
                     }
                 } catch (emailError) {
-                    console.error('Failed to send immediate notification:', emailError);
+                    console.error('❌ Failed to send immediate notification:', emailError);
                     // Don't fail the training creation if email fails
                 }
             }
