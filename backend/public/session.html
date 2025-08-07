@@ -4,15 +4,12 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Create Session</title>
-
-  <!-- 🔐 Login check -->
   <script>
     const token = localStorage.getItem('authToken');
     if (!token) {
       window.location.href = 'login.html';
     }
   </script>
-
   <style>
     * { box-sizing: border-box; }
 
@@ -47,7 +44,9 @@
       cursor: pointer;
     }
 
-    .nav-links a:hover, .dropdown-btn:hover { color: #03c988; }
+    .nav-links a:hover, .dropdown-btn:hover {
+      color: #03c988;
+    }
 
     .dropdown { position: relative; display: inline-block; }
 
@@ -81,7 +80,6 @@
       font-size: 24px;
       font-weight: bold;
       margin: 30px 0 10px 20px;
-      color: white;
     }
 
     .form-container {
@@ -97,7 +95,6 @@
       display: block;
       margin-bottom: 8px;
       font-weight: bold;
-      color: white;
     }
 
     input, select, datalist, textarea {
@@ -111,11 +108,33 @@
       font-size: 16px;
     }
 
-    input[type="date"]::-webkit-calendar-picker-indicator {
+    input[type="datetime-local"]::-webkit-calendar-picker-indicator {
       filter: invert(1);
     }
 
-    .email-list input { margin-bottom: 10px; }
+  .email-list div {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+  align-items: center;
+}
+
+
+   .email-list button.remove-email {
+  background-color: red;
+  border: none;
+  color: white;
+  font-size: 14px;
+  height: 24px;
+  width: 24px;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
 
     button {
       background-color: #03c988;
@@ -148,161 +167,167 @@
   </style>
 </head>
 <body>
-
- <nav>
-  <div class="nav-title">Training Horizon</div>
-  <div class="nav-links">
-    <a href="table.html">My Trainings</a>
-    <a href="main.html">Calendar</a>
-    <a href="records.html">Records</a>
-    <div class="dropdown">
-      <span class="dropdown-btn">User</span>
-      <div class="dropdown-content">
-        <a href="profile.html">Profile</a>
-        <a href="#" onclick="logout()">Logout</a>
+  <nav>
+    <div class="nav-title">Training Horizon</div>
+    <div class="nav-links">
+      <a href="table.html">My Trainings</a>
+      <a href="main.html">Calendar</a>
+      <a href="records.html">Records</a>
+      <div class="dropdown">
+        <span class="dropdown-btn">User</span>
+        <div class="dropdown-content">
+          <a href="profile.html">Profile</a>
+          <a href="#" onclick="logout()">Logout</a>
+        </div>
       </div>
     </div>
+  </nav>
+
+  <div class="page-title">Create Session</div>
+
+  <div class="form-container">
+    <form id="sessionForm">
+      <label for="realDate">Date & Time:</label>
+      <input type="datetime-local" id="realDate" name="date" required>
+
+      <label for="name">Session Name:</label>
+      <input list="sessionNames" id="name" name="name" required>
+      <datalist id="sessionNames">
+        <option value="Team Building Workshop">
+        <option value="Agile Training">
+        <option value="Security Awareness">
+        <option value="Leadership Development">
+        <option value="Time Management">
+      </datalist>
+
+      <label for="duration">Duration (Hrs):</label>
+      <input type="number" id="duration" name="duration" min="0" required>
+
+      <label for="participants">Number of Participants:</label>
+      <input type="number" id="participants" name="participants" min="0" required>
+
+      <label for="venue">Venue:</label>
+      <input type="text" id="venue" name="venue" required>
+
+      <input type="hidden" id="status" name="status" value="pending">
+
+      <label>Participant Emails:</label>
+      <div class="email-list" id="emailList">
+        <div>
+          <input type="email" name="emails[]" placeholder="Enter email" required>
+        </div>
+      </div>
+      <button type="button" class="add-email-btn" onclick="addEmailField()">Add Another Email</button>
+
+      <label for="hours">Training Hours:</label>
+      <input type="number" id="hours" name="hours" min="0" required readonly>
+
+      <button type="submit" id="submitBtn">Save</button>
+    </form>
   </div>
-</nav>
 
-<div class="page-title">Create Session</div>
+  <script>
+    const durationInput = document.getElementById('duration');
+    const participantsInput = document.getElementById('participants');
+    const hoursInput = document.getElementById('hours');
+    const submitBtn = document.getElementById('submitBtn');
 
-<div class="form-container">
-  <form id="sessionForm">
-
-    <label for="dateInput">Date:</label>
-    <input type="text" id="dateInput" name="date" placeholder="dd,Month,yyyy" required readonly
-           onclick="document.getElementById('realDate').showPicker()">
-    <input type="date" id="realDate" style="display:none" required onchange="updateDateInput()">
-
-    <label for="name">Session Name:</label>
-    <input list="sessionNames" id="name" name="name" required>
-    <datalist id="sessionNames">
-      <option value="Team Building Workshop">
-      <option value="Agile Training">
-      <option value="Security Awareness">
-      <option value="Leadership Development">
-      <option value="Time Management">
-    </datalist>
-
-    <label for="duration">Duration (Hrs):</label>
-    <input type="number" id="duration" name="duration" min="0" required>
-
-    <label for="participants">Number of Participants:</label>
-    <input type="number" id="participants" name="participants" min="0" required>
-
-    <label for="venue">Venue:</label>
-    <input type="text" id="venue" name="venue" required>
-
-    <label for="status">Status:</label>
-    <select id="status" name="status" required>
-      <option value="Pending">Pending</option>
-      <option value="Completed">Completed</option>
-    </select>
-
-    <label>Participant Emails:</label>
-    <div class="email-list" id="emailList">
-      <input type="email" name="emails[]" placeholder="Enter email" required>
-    </div>
-    <button type="button" class="add-email-btn" onclick="addEmailField()">Add Another Email</button>
-
-    <label for="hours">Training Hours:</label>
-    <input type="number" id="hours" name="hours" min="0" required>
-
-    <button type="submit">Save</button>
-  </form>
-</div>
-
-<script>
-  function updateDateInput() {
-    const realDate = document.getElementById('realDate');
-    const dateInput = document.getElementById('dateInput');
-    if (realDate.value) {
-      const dateObj = new Date(realDate.value);
-      const options = { day: '2-digit', month: 'long', year: 'numeric' };
-      dateInput.value = dateObj.toLocaleDateString('en-GB', options).replace(/ /g, ',');
-    }
-  }
-
-  function addEmailField() {
-    const emailList = document.getElementById('emailList');
-    const newInput = document.createElement('input');
-    newInput.type = 'email';
-    newInput.name = 'emails[]';
-    newInput.placeholder = 'Enter email';
-    newInput.required = true;
-    newInput.style.marginBottom = '10px';
-    emailList.appendChild(newInput);
-  }
-
-  document.getElementById('sessionForm').addEventListener('submit', function(event) {
-    event.preventDefault();
-
-    const realDate = document.getElementById('realDate').value;
-    if (!realDate) {
-      alert('Please select a valid date.');
-      return;
-    }
-
-    const name = document.getElementById('name').value.trim();
-    const duration = Number(document.getElementById('duration').value);
-    const participants = Number(document.getElementById('participants').value);
-    const venue = document.getElementById('venue').value.trim();
-
-    const statusRaw = document.getElementById('status').value;
-    const status = statusRaw.toLowerCase();
-
-    const hours = Number(document.getElementById('hours').value);
-
-    const emailInputs = document.querySelectorAll('input[name="emails[]"]');
-    const emails = [];
-    for (const input of emailInputs) {
-      const val = input.value.trim();
-      if (val) emails.push(val);
-    }
-
-    if (emails.length === 0) {
-      alert('Please enter at least one participant email.');
-      return;
-    }
-
-    const payload = {
-      name,
-      duration,
-      number_of_participants: participants,
-      schedule_date: realDate,
-      venue,
-      training_hours: hours,
-      notification_recipients: JSON.stringify(emails),
-      status
-    };
-
-    fetch('/api/trainings/create', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-auth-token': localStorage.getItem('authToken')
-      },
-      body: JSON.stringify(payload)
-    })
-    .then(res => res.json())
-    .then(data => {
-      if (data.msg) {
-        window.location.href = 'table.html';
-      } else {
-        alert(data.msg || (data.errors && data.errors[0].msg) || 'Unknown error');
+    function updateTrainingHours() {
+      const duration = Number(durationInput.value);
+      const participants = Number(participantsInput.value);
+      if (!isNaN(duration) && !isNaN(participants)) {
+        hoursInput.value = duration * participants;
       }
-    })
-    .catch(err => {
-      alert('Error submitting form: ' + err.message);
+    }
+
+    durationInput.addEventListener('input', updateTrainingHours);
+    participantsInput.addEventListener('input', updateTrainingHours);
+
+    function addEmailField() {
+      const emailList = document.getElementById('emailList');
+      const div = document.createElement('div');
+      div.innerHTML = `
+        <input type="email" name="emails[]" placeholder="Enter email" required>
+        <button type="button" class="remove-email" onclick="removeEmailField(this)">X</button>
+      `;
+      emailList.appendChild(div);
+    }
+
+    function removeEmailField(btn) {
+      btn.parentElement.remove();
+    }
+
+    document.getElementById('sessionForm').addEventListener('submit', function(event) {
+      event.preventDefault();
+
+      if (!submitBtn.disabled) {
+        alert('are you sure?');
+        submitBtn.disabled = true;
+
+        setTimeout(() => {
+          submitBtn.disabled = false;
+        }, 5000);
+      } else {
+        alert('Please wait, saving in progress...');
+        return;
+      }
+
+      const realDate = document.getElementById('realDate').value;
+      const name = document.getElementById('name').value.trim();
+      const duration = Number(durationInput.value);
+      const participants = Number(participantsInput.value);
+      const venue = document.getElementById('venue').value.trim();
+      const status = 'pending';
+      const hours = Number(hoursInput.value);
+
+      const emailInputs = document.querySelectorAll('input[name="emails[]"]');
+      const emails = [];
+      for (const input of emailInputs) {
+        const val = input.value.trim();
+        if (val) emails.push(val);
+      }
+
+      if (emails.length === 0) {
+        alert('Please enter at least one participant email.');
+        return;
+      }
+
+      const payload = {
+        name,
+        duration,
+        number_of_participants: participants,
+        schedule_date: realDate,
+        venue,
+        training_hours: hours,
+        notification_recipients: JSON.stringify(emails),
+        status
+      };
+
+      fetch('/api/trainings/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-auth-token': localStorage.getItem('authToken')
+        },
+        body: JSON.stringify(payload)
+      })
+        .then(res => res.json())
+        .then(data => {
+          if (data.msg) {
+            window.location.href = 'table.html';
+          } else {
+            alert(data.msg || (data.errors && data.errors[0].msg) || 'Unknown error');
+          }
+        })
+        .catch(err => {
+          alert('Error submitting form: ' + err.message);
+        });
     });
-  });
 
-  function logout() {
-    localStorage.removeItem('authToken');
-    window.location.href = 'login.html';
-  }
-</script>
-
+    function logout() {
+      localStorage.removeItem('authToken');
+      window.location.href = 'login.html';
+    }
+  </script>
 </body>
-</html>
+</html>  

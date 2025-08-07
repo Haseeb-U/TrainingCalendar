@@ -38,6 +38,13 @@
       background-color: #161b22;
       color: white;
     }
+    input[type="date"]::-webkit-calendar-picker-indicator {
+      filter: invert(1);
+    }
+    input[readonly] {
+      opacity: 0.7;
+      cursor: not-allowed;
+    }
     button {
       background-color: #34d399;
       color: white;
@@ -92,6 +99,7 @@
 <h1>Edit Training Session</h1>
 <form id="editForm">
   <input type="hidden" id="training_id" name="training_id" />
+  <input type="hidden" id="status" name="status" value="pending" />
   
   <label for="name">Name</label>
   <input type="text" id="name" name="name" required />
@@ -109,16 +117,10 @@
   <input type="number" id="number_of_participants" name="number_of_participants" min="1" required />
   
   <label for="training_hours">Training Hours</label>
-  <input type="number" id="training_hours" name="training_hours" min="0" step="0.1" required />
+  <input type="number" id="training_hours" name="training_hours" min="0" step="0.1" readonly />
   
   <label for="notification_recipients">Notification Recipients (comma-separated emails)</label>
   <input type="text" id="notification_recipients" name="notification_recipients" required />
-  
-  <label for="status">Status</label>
-  <select id="status" name="status" required>
-    <option value="pending">Pending</option>
-    <option value="completed">Completed</option>
-  </select>
   
   <button type="submit">Save Changes</button>
 </form>
@@ -137,6 +139,26 @@
     alert('No training ID provided.');
     window.location.href = 'table.html';
   }
+
+  // Elements
+  const durationInput = document.getElementById('duration');
+  const participantsInput = document.getElementById('number_of_participants');
+  const hoursInput = document.getElementById('training_hours');
+  const statusInput = document.getElementById('status');
+
+  // Auto update training hours when duration or participants change
+  function updateTrainingHours() {
+    const duration = parseFloat(durationInput.value);
+    const participants = parseInt(participantsInput.value);
+    if (!isNaN(duration) && !isNaN(participants)) {
+      hoursInput.value = (duration * participants).toFixed(1);
+    } else {
+      hoursInput.value = '';
+    }
+  }
+
+  durationInput.addEventListener('input', updateTrainingHours);
+  participantsInput.addEventListener('input', updateTrainingHours);
 
   // Fetch existing training data
   async function fetchTraining() {
@@ -172,12 +194,19 @@
       document.getElementById('notification_recipients').value = training.notification_recipients;
     }
 
-    document.getElementById('status').value = training.status;
+    // Set status hidden field automatically (keep old status if needed)
+    statusInput.value = training.status || 'pending';
+
+    // Recalculate training hours on load (in case)
+    updateTrainingHours();
   }
 
   // Submit updated data
   document.getElementById('editForm').addEventListener('submit', async e => {
     e.preventDefault();
+
+    // Before submit, update status automatically to "pending"
+    statusInput.value = 'pending';
 
     const updatedTraining = {
       training_id: document.getElementById('training_id').value,
@@ -192,7 +221,7 @@
           .split(',')
           .map(email => email.trim())
       ),
-      status: document.getElementById('status').value,
+      status: statusInput.value,
     };
 
     const res = await fetch('/api/trainings/update', {
