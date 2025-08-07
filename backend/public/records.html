@@ -138,44 +138,23 @@
       flex-grow: 1;
     }
 
-    .photo-info input[type="text"] {
-      padding: 8px;
-      border-radius: 6px;
-      border: 1px solid #03c988;
-      background-color: #121212;
-      color: white;
+    .file-name {
+      font-size: 16px;
+      font-weight: 600;
+      color: #34d399;
+      margin-bottom: 5px;
+    }
+
+    .training-name {
       font-size: 14px;
-      outline-offset: 2px;
-      outline-color: transparent;
-      transition: outline-color 0.3s;
+      color: #9ca3af;
+      margin-bottom: 5px;
     }
 
-    .photo-info input[type="text"]:focus {
-      outline-color: #03c988;
-    }
-
-    .photo-info input[type="datetime-local"] {
-      padding: 6px;
-      border-radius: 6px;
-      border: 1px solid #03c988;
-      background-color: #121212;
-      color: white;
-      font-size: 13px;
-      outline-offset: 2px;
-      outline-color: transparent;
-      transition: outline-color 0.3s;
-      width: 170px;
-    }
-
-    .photo-info input[type="datetime-local"]:focus {
-      outline-color: #03c988;
-    }
-
-    .date-display {
+    .file-meta {
       color: #9ca3af;
       font-size: 13px;
       font-family: monospace;
-      user-select: none;
     }
 
     .upload-section {
@@ -184,47 +163,10 @@
       padding: 0 10px;
     }
 
-    .upload-section input[type="file"],
-    .upload-section input[type="text"] {
-      margin: 12px 10px 12px 0;
-      padding: 8px;
-      width: 250px;
-      max-width: 90vw;
-      border-radius: 6px;
-      border: 1px solid #03c988;
-      background-color: #121212;
-      color: white;
-      font-size: 15px;
-      outline-offset: 2px;
-      outline-color: transparent;
-      transition: outline-color 0.3s;
-    }
-    .upload-section input[type="file"]:focus,
-    .upload-section input[type="text"]:focus {
-      outline-color: #03c988;
-    }
-
-    .upload-btn {
-      padding: 10px 22px;
-      border: none;
-      border-radius: 8px;
-      background-color: #03c988;
-      color: white;
-      font-weight: 600;
-      cursor: pointer;
-      box-shadow: 0 0 10px #03c988aa;
-      transition: box-shadow 0.3s, background-color 0.3s;
-    }
-
-    .upload-btn:hover {
-      background-color: #028a6b;
-      box-shadow: 0 0 16px #03c988ff;
-    }
-
-    .delete-btn {
-      background-color: #e63946;
+    .view-btn {
+      background-color: #2563eb;
       margin-top: 10px;
-      box-shadow: 0 0 8px #e6394666;
+      box-shadow: 0 0 8px #2563eb66;
       padding: 8px 12px;
       border-radius: 6px;
       font-size: 14px;
@@ -234,11 +176,15 @@
       width: 100%;
       max-width: 120px;
       align-self: flex-start;
+      color: white;
+      text-decoration: none;
+      display: inline-block;
+      text-align: center;
     }
 
-    .delete-btn:hover {
-      background-color: #ff4d4d;
-      box-shadow: 0 0 14px #ff4d4dcc;
+    .view-btn:hover {
+      background-color: #1d4ed8;
+      box-shadow: 0 0 14px #1d4ed8cc;
     }
 
     #imageModal {
@@ -302,13 +248,7 @@
   </nav>
 
   <div class="container">
-    <h1>Uploaded Records</h1>
-
-    <div class="upload-section">
-      <input type="file" id="fileInput" />
-      <input type="text" id="titleInput" placeholder="Enter title" />
-      <button class="upload-btn" onclick="uploadFile()">Upload</button>
-    </div>
+    <h1>My Training Files</h1>
 
     <div id="gallery"></div>
   </div>
@@ -350,7 +290,7 @@
     }
 
     function sortFiles() {
-      filesCache.sort((a, b) => new Date(b._date) - new Date(a._date));
+      filesCache.sort((a, b) => new Date(b.uploaded_at) - new Date(a.uploaded_at));
     }
 
     function fetchFiles() {
@@ -362,13 +302,9 @@
       })
       .then(res => res.json())
       .then(data => {
-        filesCache = data.map(f => ({
-          ...f,
-          _title: f.title || '',
-          _date: f.uploaded_at || new Date().toISOString()
-        }));
+        filesCache = data || [];
         sortFiles();
-        displayPhotos();
+        displayFiles();
       })
       .catch(err => {
         console.error('Failed to fetch files:', err);
@@ -376,9 +312,14 @@
       });
     }
 
-    function displayPhotos() {
+    function displayFiles() {
       const gallery = document.getElementById('gallery');
       gallery.innerHTML = '';
+
+      if (filesCache.length === 0) {
+        gallery.innerHTML = '<div style="text-align: center; color: #9ca3af; padding: 40px;">No training files found. Upload files from the trainings table.</div>';
+        return;
+      }
 
       filesCache.forEach(file => {
         const card = document.createElement('div');
@@ -386,69 +327,53 @@
 
         const img = document.createElement('img');
         img.src = file.fileUrl;
-        img.alt = file._title || 'Uploaded file';
+        img.alt = getOriginalFileName(file.file_path);
         img.title = "Click to view larger";
         img.onclick = () => openModal(file.fileUrl);
 
         const info = document.createElement('div');
         info.className = 'photo-info';
 
-        const titleInput = document.createElement('input');
-        titleInput.type = 'text';
-        titleInput.value = file._title;
-        titleInput.placeholder = "Title";
-        titleInput.onchange = e => {
-          file._title = e.target.value.trim();
-          // Optionally, update backend here
-        };
+        const fileName = document.createElement('div');
+        fileName.className = 'file-name';
+        fileName.textContent = getOriginalFileName(file.file_path);
 
-        const dateInput = document.createElement('input');
-        dateInput.type = 'datetime-local';
-        const d = new Date(file._date);
-        dateInput.value = d.toISOString().slice(0, 16);
-        dateInput.onchange = e => {
-          file._date = new Date(e.target.value).toISOString();
-          sortFiles();
-          displayPhotos();
-          // Optionally, update backend here
-        };
+        const trainingName = document.createElement('div');
+        trainingName.className = 'training-name';
+        trainingName.textContent = file.training_name ? `Training: ${file.training_name}` : 'General File';
 
-        const dateDisplay = document.createElement('div');
-        dateDisplay.className = 'date-display';
-        dateDisplay.textContent = formatDateDisplay(file._date);
+        const fileMeta = document.createElement('div');
+        fileMeta.className = 'file-meta';
+        fileMeta.textContent = `Uploaded: ${formatDateDisplay(file.uploaded_at)}`;
 
-        const deleteBtn = document.createElement('button');
-        deleteBtn.innerText = 'Delete';
-        deleteBtn.className = 'upload-btn delete-btn';
-        deleteBtn.onclick = () => {
-          if (confirm("Are you sure you want to delete this file? This action cannot be undone.")) {
-            fetch(`/api/files/delete/${file.id}`, {
-              method: 'DELETE',
-              headers: {
-                'x-auth-token': localStorage.getItem('authToken')
-              }
-            })
-            .then(res => res.json())
-            .then(data => {
-              alert(data.msg || "File deleted");
-              fetchFiles();
-            })
-            .catch(err => {
-              console.error('Delete failed:', err);
-              alert('Failed to delete file');
-            });
-          }
-        };
+        const viewBtn = document.createElement('a');
+        viewBtn.className = 'view-btn';
+        viewBtn.textContent = 'View Details';
+        if (file.training_id) {
+          viewBtn.href = `view-files.html?id=${file.training_id}`;
+        } else {
+          viewBtn.onclick = () => openModal(file.fileUrl);
+          viewBtn.href = '#';
+        }
 
-        info.appendChild(titleInput);
-        info.appendChild(dateInput);
-        info.appendChild(dateDisplay);
-        info.appendChild(deleteBtn);
+        info.appendChild(fileName);
+        info.appendChild(trainingName);
+        info.appendChild(fileMeta);
+        info.appendChild(viewBtn);
 
         card.appendChild(img);
         card.appendChild(info);
         gallery.appendChild(card);
       });
+    }
+
+    function getOriginalFileName(filePath) {
+      // Remove the user_id_timestamp_ prefix to get original name
+      const parts = filePath.split('_');
+      if (parts.length >= 3) {
+        return parts.slice(2).join('_');
+      }
+      return filePath;
     }
 
     function openModal(src) {
@@ -462,44 +387,6 @@
       const modal = document.getElementById('imageModal');
       modal.style.display = 'none';
       document.getElementById('modalImg').src = '';
-    }
-
-    function uploadFile() {
-      const fileInput = document.getElementById('fileInput');
-      const titleInput = document.getElementById('titleInput');
-
-      if (!fileInput.files.length) {
-        alert("Please select a file");
-        return;
-      }
-
-      if (!titleInput.value.trim()) {
-        alert("Please enter a title");
-        return;
-      }
-
-      const formData = new FormData();
-      formData.append('file', fileInput.files[0]);
-      formData.append('title', titleInput.value.trim());
-
-      fetch('/api/files/upload', {
-        method: 'POST',
-        headers: {
-          'x-auth-token': localStorage.getItem('authToken')
-        },
-        body: formData
-      })
-      .then(res => res.json())
-      .then(data => {
-        alert(data.msg || "Uploaded");
-        fileInput.value = '';
-        titleInput.value = '';
-        fetchFiles();
-      })
-      .catch(err => {
-        alert("Upload failed");
-        console.error(err);
-      });
     }
   </script>
 </body>

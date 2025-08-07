@@ -102,20 +102,33 @@
     .edit-cell, .delete-cell, .checkbox-cell {
       text-align: center;
     }
-    button.btn-edit, button.btn-delete {
+    button.btn-edit, button.btn-delete, .upload-btn {
       background: none;
       border: none;
       color: white;
       cursor: pointer;
-      padding: 6px;
-      width: 24px;
-      height: 24px;
+      padding: 6px 12px;
+      min-width: 60px;
+      height: 32px;
       display: inline-flex;
       align-items: center;
       justify-content: center;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .upload-btn {
+      background-color: #16a34a;
+    }
+    .upload-btn:hover {
+      background-color: #15803d;
     }
     button.btn-edit:hover, button.btn-delete:hover {
       color: #34d399;
+    }
+    .upload-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
     }
     input[type="checkbox"] {
       transform: scale(1.2);
@@ -289,7 +302,7 @@
         <th>Complete</th>
         <th>Edit</th>
         <th>Delete</th>
-        <th>Upload</th>
+        <th>Training Sheet</th>
         <th>Name</th>
         <th>Date &amp; Time</th>
         <th>Duration</th>
@@ -378,7 +391,7 @@
         </td>
         <td class="delete-cell"><button class="btn-delete" onclick="deleteTraining(${training.id})" title="Delete">🗑️</button></td>
         <td class="upload-cell">
-          <button onclick="uploadFile(${training.id})" title="Upload File">📤</button>
+          <button class="upload-btn" id="uploadBtn-${training.id}" onclick="handleFileAction(${training.id})" title="Upload File">Upload</button>
         </td>
         <td>${training.name}</td>
         <td>${formatDateTime(training.schedule_date)}</td>
@@ -390,6 +403,34 @@
       tbody.appendChild(row);
     });
     updateSummary();
+    checkFilesForTrainings(trainings);
+  }
+
+  // Check if files exist for trainings and update buttons accordingly
+  async function checkFilesForTrainings(trainings) {
+    for (const training of trainings) {
+      try {
+        const response = await fetch(`/api/files/training/${training.id}`, {
+          headers: { 'x-auth-token': localStorage.getItem('authToken') }
+        });
+        const result = await response.json();
+        const button = document.getElementById(`uploadBtn-${training.id}`);
+        
+        if (response.ok && result.files && result.files.length > 0) {
+          // Files exist, show View button
+          button.textContent = 'View';
+          button.title = 'View Files';
+          button.style.backgroundColor = '#2563eb';
+        } else {
+          // No files, show Upload button
+          button.textContent = 'Upload';
+          button.title = 'Upload File';
+          button.style.backgroundColor = '';
+        }
+      } catch (error) {
+        console.error('Error checking files for training:', training.id, error);
+      }
+    }
   }
 
   function deleteTraining(id) {
@@ -549,10 +590,109 @@ function submitShare() {
     displayTrainings(allTrainings);
   }
 
+  // Handle both upload and view file actions
+  function handleFileAction(trainingId) {
+    const button = document.getElementById(`uploadBtn-${trainingId}`);
+    if (button.textContent === 'Upload') {
+      uploadFile(trainingId);
+    } else {
+      viewFiles(trainingId);
+    }
+  }
+
+  // View files for a training
+  async function viewFiles(trainingId) {
+    // Redirect to the dedicated view files page
+    window.location.href = `view-files.html?id=${trainingId}`;
+  }
+
   // Upload button handler
   function uploadFile(trainingId) {
-    alert(`Upload file for training ID: ${trainingId}`);
-    // TODO: Implement your actual upload logic here
+    // Create a file input element
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = 'image/*,application/pdf,.pdf';
+    fileInput.style.display = 'none';
+    
+    // Handle file selection
+    fileInput.onchange = function(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      
+      // Validate file type
+      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'application/pdf'];
+      if (!allowedTypes.includes(file.type)) {
+        alert('Please select an image file (JPEG, PNG, GIF, WebP) or PDF file.');
+        return;
+      }
+      
+      // Validate file size (10MB limit)
+      const maxSize = 10 * 1024 * 1024; // 10MB
+      if (file.size > maxSize) {
+        alert('File size must be less than 10MB.');
+        return;
+      }
+      
+      // Upload the file
+      uploadFileToServer(trainingId, file);
+    };
+    
+    // Trigger file selection dialog
+    document.body.appendChild(fileInput);
+    fileInput.click();
+    document.body.removeChild(fileInput);
+  }
+  
+  // Function to upload file to server
+  async function uploadFileToServer(trainingId, file) {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('training_id', trainingId);
+    
+    try {
+      // Show loading state
+      const uploadButtons = document.querySelectorAll(`#uploadBtn-${trainingId}`);
+      uploadButtons.forEach(btn => {
+        btn.textContent = '⏳';
+        btn.disabled = true;
+      });
+      
+      const response = await fetch('/api/files/upload', {
+        method: 'POST',
+        headers: {
+          'x-auth-token': localStorage.getItem('authToken')
+        },
+        body: formData
+      });
+      
+      const result = await response.json();
+      
+      if (response.ok) {
+        alert('File uploaded successfully!');
+        // Update button to "View" after successful upload
+        const button = document.getElementById(`uploadBtn-${trainingId}`);
+        if (button) {
+          button.textContent = 'View';
+          button.title = 'View Files';
+          button.style.backgroundColor = '#2563eb';
+        }
+      } else {
+        alert('Upload failed: ' + (result.msg || 'Unknown error'));
+      }
+    } catch (error) {
+      console.error('Upload error:', error);
+      alert('Upload failed: Network error');
+    } finally {
+      // Reset button state (only if upload failed)
+      const button = document.getElementById(`uploadBtn-${trainingId}`);
+      if (button && button.disabled) {
+        button.disabled = false;
+        // Only reset to original state if it's not already "View"
+        if (button.textContent === '⏳') {
+          button.textContent = 'Upload';
+        }
+      }
+    }
   }
 
   fetchTrainings();
