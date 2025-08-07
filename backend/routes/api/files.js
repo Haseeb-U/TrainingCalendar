@@ -97,7 +97,7 @@ router.delete('/delete/:fileId', jwtTokenDecoder, async (req, res) => {
 
   try {
     const [file] = await req.app.locals.db.query(
-      'SELECT file_path FROM user_files WHERE id = ? AND user_id = ?',
+      'SELECT file_path, training_id FROM user_files WHERE id = ? AND user_id = ?',
       [fileId, userId]
     );
 
@@ -106,6 +106,7 @@ router.delete('/delete/:fileId', jwtTokenDecoder, async (req, res) => {
     }
 
     const filePath = path.join(__dirname, '../../userFiles', file[0].file_path);
+    const trainingId = file[0].training_id;
 
     fs.unlink(filePath, async (err) => {
       if (err) {
@@ -113,12 +114,19 @@ router.delete('/delete/:fileId', jwtTokenDecoder, async (req, res) => {
         return res.status(500).json({ msg: 'Error deleting file' });
       }
 
+      // Delete the file record from database
       await req.app.locals.db.query(
         'DELETE FROM user_files WHERE id = ? AND user_id = ?',
         [fileId, userId]
       );
 
-      res.status(200).json({ msg: 'File deleted successfully' });
+      // Update the related training status to pending
+      await req.app.locals.db.query(
+        'UPDATE Trainings SET status = ? WHERE id = ? AND user_id = ?',
+        ['pending', trainingId, userId]
+      );
+
+      res.status(200).json({ msg: 'File deleted successfully and training status updated to pending' });
     });
   } catch (err) {
     console.error(err);
