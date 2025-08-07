@@ -255,7 +255,7 @@
       });
 
     } catch(err) {
-      alert('Error loading sessions: ' + err.message);
+      console.error('Error loading sessions: ' + err.message);
       sessionsByDate = {};
     }
   }
