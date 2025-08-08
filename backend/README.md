@@ -499,7 +499,7 @@ Below are the main backend routes you will use, with simple explanations and cod
 
 The system automatically sends email reminders for upcoming trainings:
 
-- **When:** Every day at 8:00 AM (server time)
+- **When:** Every day at 9:00 AM (server time)
 - **Who gets notified:** Recipients specified in the `notification_recipients` field when creating/updating a training
 - **What trainings:** Only pending trainings scheduled within the next 2 days
 - **Email content:** 
