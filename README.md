@@ -163,6 +163,7 @@ EMAIL_HOST=smtp.gmail.com
 EMAIL_PORT=587
 EMAIL_SECURE=false
 EMAIL_USER=your_email@gmail.com
+# Get your Gmail app password from: https://myaccount.google.com/apppasswords
 EMAIL_PASS=your_app_password
 
 # Application Settings
@@ -442,7 +443,7 @@ This project is licensed under the ISC License - see the package.json file for d
 
 ## 👨‍💻 Author
 
-**Haseeb** - Backend Developer
+**Haseeb**
 
 ## 📞 Support
 
