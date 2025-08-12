@@ -50,7 +50,7 @@ async function initDatabase() {
     console.log('✅ Added OTP verification columns to users table');
   } catch (error) {
     // Columns might already exist, ignore error
-    console.log('ℹ️ OTP verification columns already exist or could not be added');
+    console.log('');
   }
 
   await db.query(`

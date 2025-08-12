@@ -2,6 +2,87 @@
 
 A comprehensive web-based training calendar management system built with Node.js, Express, and MySQL. This system allows organizations to schedule, manage, and track training sessions with automated email notifications and file management capabilities.
 
+## 📖 Table of Contents
+
+1. [🎯 Project Overview](#-project-overview)
+   - [Key Features](#key-features)
+2. [🏗️ System Architecture](#️-system-architecture)
+   - [Backend Stack](#backend-stack)
+   - [Frontend Stack](#frontend-stack)
+3. [📁 Project Structure](#-project-structure)
+4. [🚀 How To Run This Project](#-how-to-run-this-project)
+   - [Step 1: Prerequisites Installation](#step-1-prerequisites-installation)
+   - [Step 2: Download and Setup Project](#step-2-download-and-setup-project)
+   - [Step 3: Database Configuration](#step-3-database-configuration)
+   - [Step 4: Environment Configuration](#step-4-environment-configuration)
+   - [Step 5: Start the Application](#step-5-start-the-application)
+   - [Step 6: Verify Everything is Working](#step-6-verify-everything-is-working)
+   - [Step 7: Test Core Functionality](#step-7-test-core-functionality)
+   - [Step 8: Troubleshooting Common Issues](#step-8-troubleshooting-common-issues)
+   - [Step 9: Optional - Production Setup](#step-9-optional---production-setup)
+   - [Quick Start Summary](#quick-start-summary)
+   - [Next Steps](#next-steps)
+5. [🗄️ Database Schema](#️-database-schema)
+   - [Users Table](#users-table)
+   - [Trainings Table](#trainings-table)
+   - [User Files Table](#user-files-table)
+6. [🚀 Installation and Setup](#-installation-and-setup)
+7. [📋 API Documentation](#-api-documentation)
+   - [Authentication Endpoints](#authentication-endpoints)
+   - [Training Management Endpoints](#training-management-endpoints)
+   - [File Management Endpoints](#file-management-endpoints)
+   - [Data Export Endpoints](#data-export-endpoints)
+8. [🔧 Key Features Explained](#-key-features-explained)
+   - [User Authentication System](#1-user-authentication-system)
+   - [Training Management](#2-training-management)
+   - [Automated Notification System](#3-automated-notification-system)
+   - [File Management System](#4-file-management-system)
+   - [Frontend Interface](#5-frontend-interface)
+   - [Data Export and Reporting](#6-data-export-and-reporting)
+9. [📧 Email Notification System](#-email-notification-system)
+   - [Automated Reminders](#automated-reminders)
+   - [Email Templates](#email-templates)
+   - [Configuration](#configuration)
+10. [🔒 Security Features](#-security-features)
+    - [Authentication & Authorization](#authentication--authorization)
+    - [Data Protection](#data-protection)
+    - [File Security](#file-security)
+11. [🎨 Frontend Features](#-frontend-features)
+    - [User Interface Pages](#user-interface-pages)
+    - [Interactive Features](#interactive-features)
+12. [📊 Development Scripts](#-development-scripts)
+    - [Development Workflow](#development-workflow)
+13. [🔄 Automated Tasks](#-automated-tasks)
+    - [Cron Job Schedule](#cron-job-schedule)
+    - [Reminder Logic](#reminder-logic)
+    - [OTP Management](#otp-management)
+14. [📈 Monitoring and Logging](#-monitoring-and-logging)
+    - [Server Logging](#server-logging)
+    - [Database Monitoring](#database-monitoring)
+    - [Email System Monitoring](#email-system-monitoring)
+15. [🚀 Deployment Considerations](#-deployment-considerations)
+    - [Production Environment](#production-environment)
+    - [Performance Optimization](#performance-optimization)
+    - [Security Hardening](#security-hardening)
+16. [🤝 Contributing](#-contributing)
+    - [Development Guidelines](#development-guidelines)
+    - [Code Quality Standards](#code-quality-standards)
+    - [Git Workflow](#git-workflow)
+17. [📄 License](#-license)
+18. [👨‍💻 Author](#-author)
+19. [📞 Support](#-support)
+    - [Getting Help](#getting-help)
+    - [Common Issues and Solutions](#common-issues-and-solutions)
+    - [Development Support](#development-support)
+    - [Contact Information](#contact-information)
+20. [📋 Additional Features & Technical Details](#-additional-features--technical-details)
+    - [Advanced Authentication](#advanced-authentication)
+    - [Database Features](#database-features)
+    - [File Management](#file-management)
+    - [Email System](#email-system)
+
+---
+
 ## 🎯 Project Overview
 
 The Training Calendar Management System is designed to streamline the process of organizing corporate training sessions. It provides a complete solution for scheduling trainings, managing participants, sending automated reminders, and tracking completion status.
@@ -134,28 +215,15 @@ npm install
 
 ### Step 3: Database Configuration
 
-#### Option A: Use Default Settings (Recommended for beginners)
+#### Use Default Settings (Recommended for beginners)
 1. Make sure MySQL is running with default settings:
    - Host: localhost
    - Port: 3306
    - Root user with password
 
-#### Option B: Create a Dedicated Database User (Recommended for production)
-```sql
-# Connect to MySQL as root
-mysql -u root -p
-
-# Create database and user
-CREATE DATABASE TrainingCalendarDB;
-CREATE USER 'training_user'@'localhost' IDENTIFIED BY 'your_secure_password';
-GRANT ALL PRIVILEGES ON TrainingCalendarDB.* TO 'training_user'@'localhost';
-FLUSH PRIVILEGES;
-EXIT;
-```
-
 ### Step 4: Environment Configuration
 
-Create a `.env` file in the `backend` directory and configure it with your settings:
+Create a `.env` file in the `backend` folder/directory and configure it with your settings:
 
 ```bash
 # Navigate to backend directory (if not already there)
@@ -190,8 +258,6 @@ EMAIL_SECURE=false
 EMAIL_USER=your_email@gmail.com
 EMAIL_PASS=your_16_character_app_password
 
-# Application Settings
-NODE_ENV=development
 ```
 
 **Important Notes:**
@@ -222,7 +288,6 @@ npm start
 #### Check Server Status
 You should see output similar to:
 ```
-✅ Added OTP verification columns to users table
 Server is running on http://localhost:5000
 ```
 
@@ -283,50 +348,6 @@ Error: listen EADDRINUSE: address already in use :::5000
 - Check spam/junk folder
 - Verify EMAIL_USER and EMAIL_PASS in `.env` file
 - Make sure Gmail App Password is generated correctly
-
-### Step 9: Optional - Production Setup
-
-#### Install PM2 for Production
-```bash
-# Install PM2 globally
-npm install -g pm2
-
-# Start application with PM2
-pm2 start server.js --name "training-calendar"
-
-# Save PM2 configuration
-pm2 save
-
-# Set PM2 to start on system boot
-pm2 startup
-```
-
-#### Environment Variables for Production
-Update `.env` file for production:
-```env
-NODE_ENV=production
-JWT_SECRET=very_long_and_secure_random_string_for_production
-# Use production database credentials
-# Use production email service
-```
-
-### Quick Start Summary
-
-For experienced developers, here's the quick start:
-
-```bash
-# 1. Clone and install
-git clone <repo-url>
-cd TrainingCalendar/backend
-npm install
-
-# 2. Configure MySQL and create .env file with your settings
-
-# 3. Start the application
-npm run dev
-
-# 4. Open browser to http://localhost:5000
-```
 
 ### Next Steps
 
