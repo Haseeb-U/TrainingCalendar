@@ -444,4 +444,168 @@ router.get('/:id', jwtTokenDecoder, async (req, res) => {
     }
 });
 
+// route to import trainings from CSV file
+// POST /api/trainings/import
+// access private
+router.post('/import', jwtTokenDecoder, (req, res) => {
+    const multer = require('multer');
+    const csv = require('csv-parser');
+    const stream = require('stream');
+
+    // Configure multer for file upload
+    const storage = multer.memoryStorage();
+    const upload = multer({ 
+        storage: storage,
+        fileFilter: (req, file, cb) => {
+            if (file.mimetype === 'text/csv' || file.originalname.toLowerCase().endsWith('.csv')) {
+                cb(null, true);
+            } else {
+                cb(new Error('Only CSV files are allowed'), false);
+            }
+        },
+        limits: {
+            fileSize: 5 * 1024 * 1024 // 5MB limit
+        }
+    });
+
+    upload.single('csvFile')(req, res, async (err) => {
+        if (err) {
+            return res.status(400).json({ errors: [{ msg: err.message }] });
+        }
+
+        if (!req.file) {
+            return res.status(400).json({ errors: [{ msg: 'No CSV file provided' }] });
+        }
+
+        const userId = req.user.id;
+        
+        // Get user's email for notification recipients
+        let userEmail = '';
+        try {
+            const [userResult] = await req.app.locals.db.query(
+                'SELECT email FROM users WHERE id = ?',
+                [userId]
+            );
+            if (userResult.length > 0) {
+                userEmail = userResult[0].email;
+            }
+        } catch (error) {
+            console.error('Error fetching user email:', error);
+        }
+
+        const csvData = req.file.buffer.toString();
+        const trainingsToImport = [];
+
+        try {
+            // Parse CSV data using Promise
+            await new Promise((resolve, reject) => {
+                const readable = new stream.Readable();
+                readable.push(csvData);
+                readable.push(null);
+
+                readable
+                    .pipe(csv())
+                    .on('data', (row) => {
+                        try {
+                            // Parse the formatted date back to MySQL DATETIME format
+                            const scheduledDateStr = row['Scheduled_Date'] || row['scheduled_date'] || row['Schedule_Date'] || row['date'] || row['Date & Time'] || row['Date'];
+                            
+                            if (!scheduledDateStr) {
+                                console.warn('Missing date for row:', row);
+                                return;
+                            }
+
+                            // Parse various date formats
+                            let parsedDate = new Date(scheduledDateStr.replace(/(\d{1,2}):(\d{2})(AM|PM)/i, ' $1:$2 $3'));
+                            
+                            // If parsing failed, try other formats
+                            if (isNaN(parsedDate.getTime())) {
+                                parsedDate = new Date(scheduledDateStr);
+                            }
+
+                            if (isNaN(parsedDate.getTime())) {
+                                console.warn('Invalid date format for row:', row);
+                                return;
+                            }
+
+                            // Format to MySQL DATETIME
+                            const year = parsedDate.getFullYear();
+                            const month = String(parsedDate.getMonth() + 1).padStart(2, '0');
+                            const day = String(parsedDate.getDate()).padStart(2, '0');
+                            const hours = String(parsedDate.getHours()).padStart(2, '0');
+                            const minutes = String(parsedDate.getMinutes()).padStart(2, '0');
+                            const seconds = String(parsedDate.getSeconds()).padStart(2, '0');
+                            const mysqlDateTime = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+
+                            const training = {
+                                name: row['Name'] || row['name'] || '',
+                                duration: parseInt(row['Duration'] || row['duration'] || '0') || 0,
+                                number_of_participants: parseInt(row['Total_Participants'] || row['participants'] || row['Total Participants'] || row['Participants'] || '0') || 0,
+                                schedule_date: mysqlDateTime,
+                                venue: row['Venue'] || row['venue'] || '',
+                                training_hours: parseInt(row['Training_Hours'] || row['training_hours'] || row['Training Hours'] || '0') || 0,
+                                status: 'pending', // Always set as pending for imports
+                                notification_recipients: JSON.stringify(userEmail ? [userEmail] : []), // Add user's email to notifications
+                                user_id: userId
+                            };
+
+                            // Validate required fields
+                            if (training.name && training.duration && training.venue && training.training_hours) {
+                                trainingsToImport.push(training);
+                            } else {
+                                console.warn('Skipping invalid row:', row);
+                            }
+                        } catch (error) {
+                            console.warn('Error processing row:', row, error);
+                        }
+                    })
+                    .on('end', () => {
+                        resolve();
+                    })
+                    .on('error', (csvError) => {
+                        reject(csvError);
+                    });
+            });
+
+            if (trainingsToImport.length === 0) {
+                return res.status(400).json({ errors: [{ msg: 'No valid training data found in CSV file' }] });
+            }
+
+            // Insert trainings into database
+            const insertPromises = trainingsToImport.map(training => {
+                return req.app.locals.db.query(
+                    `INSERT INTO Trainings 
+                    (name, duration, number_of_participants, schedule_date, venue, status, training_hours, notification_recipients, user_id) 
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                    [
+                        training.name,
+                        training.duration,
+                        training.number_of_participants,
+                        training.schedule_date,
+                        training.venue,
+                        training.status,
+                        training.training_hours,
+                        training.notification_recipients,
+                        training.user_id
+                    ]
+                );
+            });
+
+            await Promise.all(insertPromises);
+
+            res.json({ 
+                msg: `Successfully imported ${trainingsToImport.length} training(s). All imported trainings are marked as pending.` 
+            });
+
+        } catch (error) {
+            console.error('Import error:', error);
+            if (error.message && error.message.includes('CSV')) {
+                res.status(400).json({ errors: [{ msg: 'Invalid CSV format' }] });
+            } else {
+                res.status(500).json({ errors: [{ msg: 'Database error while importing trainings' }] });
+            }
+        }
+    });
+});
+
 module.exports = router;

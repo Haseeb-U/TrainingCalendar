@@ -163,7 +163,7 @@
     }
 
     /* Modal Styles */
-    #shareModal {
+    #shareModal, #importModal {
       display: none;
       position: fixed;
       top: 0; left: 0;
@@ -172,6 +172,9 @@
       justify-content: center;
       align-items: center;
       z-index: 1000;
+    }
+    #shareModal:target, #importModal:target {
+      display: flex;
     }
     .modal-content {
       background-color: #1e1e1e;
@@ -200,6 +203,23 @@
       border-radius: 6px;
       color: white;
       font-size: 14px;
+    }
+    .modal-content input[type="file"] {
+      background-color: #2a2e35;
+      border: 2px dashed #555;
+      padding: 12px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    .modal-content input[type="file"]::-webkit-file-upload-button {
+      background-color: #03c988;
+      border: none;
+      color: white;
+      padding: 8px 16px;
+      border-radius: 4px;
+      margin-right: 10px;
+      cursor: pointer;
+      font-weight: 600;
     }
     .modal-content button {
       margin-top: 20px;
@@ -297,6 +317,16 @@
       </svg>
       Share
     </button>
+    <button class="btn-create" onclick="openImportModal()" title="Import from CSV">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="20" height="20" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+        <polyline points="14,2 14,8 20,8"></polyline>
+        <line x1="16" y1="13" x2="8" y2="13"></line>
+        <line x1="16" y1="17" x2="8" y2="17"></line>
+        <polyline points="10,9 9,9 8,9"></polyline>
+      </svg>
+      Import
+    </button>
   </div>
   <div class="summary" id="summaryDisplay">Total Hours: 0 | Actual Hours: 0 | Percentage: 0%</div>
   <table>
@@ -333,6 +363,20 @@
   </div>
 </div>
 
+<!-- Import Modal -->
+<div id="importModal">
+  <div class="modal-content">
+    <h3>Import Training Data</h3>
+    <p style="font-size: 14px; color: #888; margin-bottom: 20px;">
+      Select a CSV file with the same format as exported data. All imported trainings will be marked as pending.
+    </p>
+    <label for="csvFile">CSV File:</label>
+    <input type="file" id="csvFile" accept=".csv" style="margin-top: 6px;" />
+    <button onclick="submitImport()">Import</button>
+    <button class="cancel-btn" onclick="closeImportModal()">Cancel</button>
+  </div>
+</div>
+
 <script>
   // Redirect if authToken missing
   if (!localStorage.getItem('authToken')) {
@@ -344,6 +388,19 @@
     e.preventDefault();
     localStorage.removeItem('authToken');
     window.location.href = 'homepage.html';
+  });
+
+  // Close modals when clicking outside
+  document.getElementById('shareModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+      closeShareModal();
+    }
+  });
+
+  document.getElementById('importModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+      closeImportModal();
+    }
   });
 
   let allTrainings = [];
@@ -455,7 +512,41 @@
     }
   }
 
-  function toggleStatus(id, complete) {
+  async function toggleStatus(id, complete) {
+    // If trying to mark as complete, check if files have been uploaded
+    if (complete) {
+      try {
+        const response = await fetch(`/api/files/training/${id}`, {
+          headers: { 'x-auth-token': localStorage.getItem('authToken') }
+        });
+        const result = await response.json();
+        
+        // Check if no files exist for this training
+        if (!response.ok || !result.files || result.files.length === 0) {
+          // Show alert and uncheck the checkbox
+          alert('Please upload a training sheet before marking this training as complete.');
+          
+          // Find the checkbox and uncheck it
+          const checkbox = document.querySelector(`input[onchange*="toggleStatus(${id}"]`);
+          if (checkbox) {
+            checkbox.checked = false;
+          }
+          return;
+        }
+      } catch (error) {
+        console.error('Error checking files for training:', id, error);
+        alert('Error checking files. Please try again.');
+        
+        // Find the checkbox and uncheck it
+        const checkbox = document.querySelector(`input[onchange*="toggleStatus(${id}"]`);
+        if (checkbox) {
+          checkbox.checked = false;
+        }
+        return;
+      }
+    }
+
+    // Proceed with status update
     fetch('/api/trainings/status', {
       method: 'PATCH',
       headers: {
@@ -487,6 +578,65 @@
 
   function closeShareModal() {
     document.getElementById('shareModal').style.display = 'none';
+  }
+
+  function openImportModal() {
+    document.getElementById('importModal').style.display = 'flex';
+  }
+
+  function closeImportModal() {
+    document.getElementById('importModal').style.display = 'none';
+    document.getElementById('csvFile').value = ''; // Clear file input
+  }
+
+  function submitImport() {
+    const fileInput = document.getElementById('csvFile');
+    const file = fileInput.files[0];
+
+    if (!file) {
+      alert('Please select a CSV file.');
+      return;
+    }
+
+    if (!file.name.toLowerCase().endsWith('.csv')) {
+      alert('Please select a valid CSV file.');
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('csvFile', file);
+
+    // Show loading state
+    const importButton = document.querySelector('#importModal button[onclick="submitImport()"]');
+    const originalText = importButton.textContent;
+    importButton.textContent = 'Importing...';
+    importButton.disabled = true;
+
+    fetch('/api/trainings/import', {
+      method: 'POST',
+      headers: {
+        'x-auth-token': localStorage.getItem('authToken')
+      },
+      body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.msg) {
+        alert(data.msg);
+        closeImportModal();
+        fetchTrainings(); // Refresh the table
+      } else {
+        alert(data.errors?.[0]?.msg || 'Import failed.');
+      }
+    })
+    .catch(() => {
+      alert('Failed to import data.');
+    })
+    .finally(() => {
+      // Reset button state
+      importButton.textContent = originalText;
+      importButton.disabled = false;
+    });
   }
 
  let shareBtnBlocked = false;
@@ -689,6 +839,8 @@ function submitShare() {
           button.title = 'View Files';
           button.style.backgroundColor = '#2563eb';
         }
+        // Refresh the page to show updated training status
+        location.reload();
       } else {
         alert('Upload failed: ' + (result.msg || 'Unknown error'));
       }

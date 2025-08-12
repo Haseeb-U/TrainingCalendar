@@ -177,23 +177,22 @@ const getEmailTemplate = (type, data) => {
   switch (type) {
     case 'training_reminder':
       return baseTemplate(
-        `Training Reminder: ${data.name}`,
+        `Training Reminder – ${data.name}`,
         `
           <div class="header">
-            <div class="icon">⏰</div>
-            <h1>Training Reminder</h1>
+            <div class="icon">📌</div>
+            <h1>Training Reminder – <span style="text-decoration: underline;">${data.name}</span></h1>
           </div>
           <div class="content">
-            <h2>🎯 Training is coming up soon!</h2>
-            <p>Hello there! This is a friendly reminder for an important training session scheduled soon.</p>
+            <p style="font-size: 16px; margin-bottom: 30px;">This is a friendly reminder for an upcoming training session. All concerned must note the details and ensure attendance.</p>
             
             <div class="info-card">
               <div class="info-row">
-                <span class="info-label">📚 Training Name:</span>
-                <span class="info-value"><strong>${data.name}</strong></span>
+                <span class="info-label">📚 Title:</span>
+                <span class="info-value">${data.name}</span>
               </div>
               <div class="info-row">
-                <span class="info-label">📅 Scheduled Date:</span>
+                <span class="info-label">📅 Date:</span>
                 <span class="info-value">${new Date(data.schedule_date).toLocaleDateString('en-US', { 
                   weekday: 'long', 
                   year: 'numeric', 
@@ -202,35 +201,40 @@ const getEmailTemplate = (type, data) => {
                 })}</span>
               </div>
               <div class="info-row">
-                <span class="info-label">⏰ Time:</span>
+                <span class="info-label">🕐 Time:</span>
                 <span class="info-value">${new Date(data.schedule_date).toLocaleTimeString('en-US', {
                   hour: '2-digit',
-                  minute: '2-digit'
+                  minute: '2-digit',
+                  hour12: true
+                })} – ${new Date(new Date(data.schedule_date).getTime() + (parseInt(data.duration) || 1) * 60 * 60 * 1000).toLocaleTimeString('en-US', {
+                  hour: '2-digit',
+                  minute: '2-digit',
+                  hour12: true
                 })}</span>
               </div>
               <div class="info-row">
-                <span class="info-label">📍 Venue:</span>
-                <span class="info-value">${data.venue || 'TBA'}</span>
-              </div>
-              <div class="info-row">
-                <span class="info-label">⏱️ Duration:</span>
-                <span class="info-value">${data.duration || 'TBA'}</span>
-              </div>
-              <div class="info-row">
-                <span class="info-label">👥 Total Participants:</span>
-                <span class="info-value">${data.number_of_participants || 'TBA'}</span>
-              </div>
-              <div class="info-row">
-                <span class="info-label">📊 Status:</span>
-                <span class="info-value"><span class="status-${data.status || 'pending'}">${(data.status || 'pending').toUpperCase()}</span></span>
+                <span class="info-label">� Venue:</span>
+                <span class="info-value">${data.venue}</span>
               </div>
             </div>
-            
+
+            <div style="background: #fff3cd; border-left: 4px solid #ffc107; padding: 20px; margin: 30px 0; border-radius: 0 8px 8px 0;">
+              <h3 style="margin-top: 0; color: #856404;">⚡ Important Note:</h3>
+              <p style="color: #856404; margin: 0; font-size: 16px;">Attendance is mandatory; please prioritize and plan accordingly to ensure your presence for this scheduled training.</p>
+            </div>
           </div>
           <div class="footer">
-            <p><strong>Training Calendar System</strong></p>
-            <p>📧 This is an automated reminder. Please don't reply to this email.</p>
-            <p>🕐 Generated on ${new Date().toLocaleString()}</p>
+            <p style="color: #6c757d; font-size: 16px; margin-bottom: 10px;"><strong>Training Calendar System</strong></p>
+            <p style="color: #6c757d; font-size: 14px; margin: 5px 0;">ℹ️ This is an automated reminder. For questions, please contact your training coordinator.</p>
+            <p style="color: #6c757d; font-size: 14px; margin: 5px 0;">🕐 Reminder sent on ${new Date().toLocaleDateString('en-US', { 
+              month: 'numeric', 
+              day: 'numeric', 
+              year: 'numeric' 
+            })}, ${new Date().toLocaleTimeString('en-US', {
+              hour: '2-digit',
+              minute: '2-digit',
+              hour12: true
+            })}</p>
           </div>
         `,
         '#38b2ac'
@@ -238,23 +242,22 @@ const getEmailTemplate = (type, data) => {
 
     case 'new_training_notification':
       return baseTemplate(
-        `New Training: ${data.name}`,
+        `Training Schedule – ${data.name}`,
         `
           <div class="header">
-            <div class="icon">🎓</div>
-            <h1>New Training Scheduled!</h1>
+            <div class="icon">📌</div>
+            <h1>Training Schedule – <span style="text-decoration: underline;">${data.name}</span></h1>
           </div>
           <div class="content">
-            <h2>🚀 A new training has been scheduled</h2>
-            <p>We're pleased to inform you that a new training session has been added to the calendar.</p>
+            <p style="font-size: 16px; margin-bottom: 30px;">A new training session has been added to the official calendar. All concerned must note the details and ensure attendance.</p>
             
             <div class="info-card">
               <div class="info-row">
-                <span class="info-label">📚 Training Name:</span>
-                <span class="info-value"><strong>${data.name}</strong></span>
+                <span class="info-label">📚 Title:</span>
+                <span class="info-value">${data.name}</span>
               </div>
               <div class="info-row">
-                <span class="info-label">📅 Scheduled Date:</span>
+                <span class="info-label">📅 Date:</span>
                 <span class="info-value">${new Date(data.schedule_date).toLocaleDateString('en-US', { 
                   weekday: 'long', 
                   year: 'numeric', 
@@ -263,39 +266,40 @@ const getEmailTemplate = (type, data) => {
                 })}</span>
               </div>
               <div class="info-row">
-                <span class="info-label">⏰ Time:</span>
+                <span class="info-label">🕐 Time:</span>
                 <span class="info-value">${new Date(data.schedule_date).toLocaleTimeString('en-US', {
                   hour: '2-digit',
-                  minute: '2-digit'
+                  minute: '2-digit',
+                  hour12: true
+                })} – ${new Date(new Date(data.schedule_date).getTime() + (parseInt(data.duration) || 1) * 60 * 60 * 1000).toLocaleTimeString('en-US', {
+                  hour: '2-digit',
+                  minute: '2-digit',
+                  hour12: true
                 })}</span>
               </div>
               <div class="info-row">
-                <span class="info-label">📍 Venue:</span>
+                <span class="info-label">� Venue:</span>
                 <span class="info-value">${data.venue}</span>
-              </div>
-              <div class="info-row">
-                <span class="info-label">⏱️ Duration:</span>
-                <span class="info-value">${data.duration}</span>
-              </div>
-              <div class="info-row">
-                <span class="info-label">👥 Total Participants:</span>
-                <span class="info-value">${data.number_of_participants}</span>
-              </div>
-              <div class="info-row">
-                <span class="info-label">📊 Status:</span>
-                <span class="info-value"><span class="status-${data.status}">${data.status.toUpperCase()}</span></span>
               </div>
             </div>
 
-            <div style="background: #fff5f5; border-left: 4px solid #e53e3e; padding: 20px; margin: 20px 0; border-radius: 0 8px 8px 0;">
-              <h3 style="margin-top: 0; color: #c53030;">⚡ Important Notice:</h3>
-              <p style="color: #2d3748; margin: 10px 0;">This training is scheduled within the next 2 days.</p>
+            <div style="background: #fff3cd; border-left: 4px solid #ffc107; padding: 20px; margin: 30px 0; border-radius: 0 8px 8px 0;">
+              <h3 style="margin-top: 0; color: #856404;">⚡ Important Note:</h3>
+              <p style="color: #856404; margin: 0; font-size: 16px;">Attendance is mandatory; please prioritize and plan accordingly to ensure your presence for this scheduled training.</p>
             </div>
           </div>
           <div class="footer">
-            <p><strong>Training Calendar System</strong></p>
-            <p>📧 This is an automated notification. For questions, please contact your training coordinator.</p>
-            <p>🕐 Training created on ${new Date().toLocaleString()}</p>
+            <p style="color: #6c757d; font-size: 16px; margin-bottom: 10px;"><strong>Training Calendar System</strong></p>
+            <p style="color: #6c757d; font-size: 14px; margin: 5px 0;">ℹ️ This is an automated notification. For questions, please contact your training coordinator.</p>
+            <p style="color: #6c757d; font-size: 14px; margin: 5px 0;">🕐 Training created on ${new Date().toLocaleDateString('en-US', { 
+              month: 'numeric', 
+              day: 'numeric', 
+              year: 'numeric' 
+            })}, ${new Date().toLocaleTimeString('en-US', {
+              hour: '2-digit',
+              minute: '2-digit',
+              hour12: true
+            })}</p>
           </div>
         `,
         '#4c51bf'
@@ -367,36 +371,24 @@ const getEmailTemplate = (type, data) => {
         'Welcome to Training Calendar System!',
         `
           <div class="header">
-            <div class="icon">🎉</div>
             <h1>Welcome to Training Horizon!</h1>
           </div>
           <div class="content">
-            <h2>🚀 Training Horizon makes training management easy!</h2>
-            <p>Hello ${data.name}! We are excited to have you on board.</p>
-
-            <div class="info-card">
-              <h3 style="color: #4a90e2; margin-top: 0;">👤 Your Account Details</h3>
-              <div class="info-row">
-                <span class="info-label">👨‍💼 Name:</span>
-                <span class="info-value"><strong>${data.name}</strong></span>
-              </div>
-              <div class="info-row">
-                <span class="info-label">📧 Email:</span>
-                <span class="info-value">${data.email}</span>
-              </div>
-              <div class="info-row">
-                <span class="info-label">🆔 Employee ID:</span>
-                <span class="info-value">${data.employee_no}</span>
-              </div>
-              <div class="info-row">
-                <span class="info-label">📅 Joined:</span>
-                <span class="info-value">${new Date().toLocaleDateString('en-US', { 
+            <h2>Training Horizon makes training management easy!</h2>
+            
+            <div style="background: #f0fff4; border-left: 4px solid #48bb78; padding: 20px; margin: 20px 0; border-radius: 0 8px 8px 0;">
+              <h3 style="margin-top: 0; color: #2f855a;">👤 Your Account Details</h3>
+              <ul style="color: #2d3748; margin: 10px 0;">
+                <li>👨‍💼 Name: <strong>${data.name}</strong></li>
+                <li>📧 Email: ${data.email}</li>
+                <li>🆔 Employee ID: ${data.employee_no}</li>
+                <li>📅 Joined: ${new Date().toLocaleDateString('en-US', { 
                   weekday: 'long', 
                   year: 'numeric', 
                   month: 'long', 
                   day: 'numeric' 
-                })}</span>
-              </div>
+                })}</li>
+              </ul>
             </div>
 
             <div style="background: #f0fff4; border-left: 4px solid #48bb78; padding: 20px; margin: 20px 0; border-radius: 0 8px 8px 0;">
@@ -420,12 +412,7 @@ const getEmailTemplate = (type, data) => {
               </ul>
             </div>
 
-          </div>
-          <div class="footer">
-            <p><strong>Training Calendar System</strong></p>
-            <p>🎯 Your success is our priority. Let's achieve great things together!</p>
-            <p>📞 Need help? Contact our support team anytime.</p>
-          </div>
+          
         `,
         '#48bb78'
       );
@@ -453,7 +440,7 @@ const getEmailTemplate = (type, data) => {
 
 // Utility functions for sending specific email types
 const sendWelcomeEmail = async (userData) => {
-  const subject = `🎉 Welcome to Training Calendar System, ${userData.name}!`;
+  const subject = `Welcome to Training Calendar System, ${userData.name}!`;
   const htmlContent = getEmailTemplate('welcome', userData);
   return sendTrainingNotification(userData.email, subject, htmlContent);
 };
@@ -465,7 +452,7 @@ const sendTrainingReminderEmail = async (recipients, trainingData) => {
 };
 
 const sendNewTrainingNotificationEmail = async (recipients, trainingData) => {
-  const subject = `🎓 New Training : ${trainingData.name}`;
+  const subject = `🎓 Upcoming Training : ${trainingData.name}`;
   const htmlContent = getEmailTemplate('new_training_notification', trainingData);
   return sendTrainingNotification(recipients, subject, htmlContent);
 };

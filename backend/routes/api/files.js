@@ -79,8 +79,15 @@ router.post('/upload', jwtTokenDecoder, upload.single('file'), async (req, res) 
       'INSERT INTO user_files (user_id, training_id, file_path) VALUES (?, ?, ?)',
       [userId, trainingId, newFileName]
     );
+
+    // Automatically mark the training as completed after successful file upload
+    await req.app.locals.db.query(
+      'UPDATE Trainings SET status = ? WHERE id = ? AND user_id = ?',
+      ['completed', trainingId, userId]
+    );
+
     res.status(201).json({
-      msg: 'File uploaded successfully',
+      msg: 'File uploaded successfully and training marked as complete',
       fileUrl: `/userFiles/${newFileName}`,
       training_id: trainingId
     });
