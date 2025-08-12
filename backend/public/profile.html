@@ -154,6 +154,27 @@
     .modal-content button {
       margin-top: 15px;
       width: 100%;
+      background-color: #03c988;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      font-size: 16px;
+      font-weight: bold;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: box-shadow 0.3s;
+      box-shadow: 0 0 8px white;
+    }
+    .modal-content button:hover {
+      box-shadow: 0 0 12px #ffffff;
+    }
+    .modal-content button.cancel-btn {
+      background-color: #6b7280;
+      margin-top: 10px;
+    }
+    .modal-content button.cancel-btn:hover {
+      background-color: #4b5563;
+      box-shadow: 0 0 12px #6b7280;
     }
   </style>
 </head>
@@ -207,7 +228,7 @@
       <input type="password" id="oldPassword" placeholder="Current Password" />
       <input type="password" id="newPassword" placeholder="New Password" />
       <button onclick="changePassword()">Submit</button>
-      <button onclick="closePasswordModal()" style="margin-top:10px;background-color:#2a2e35;">Cancel</button>
+      <button class="cancel-btn" onclick="closePasswordModal()">Cancel</button>
     </div>
   </div>
 

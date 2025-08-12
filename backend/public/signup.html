@@ -73,12 +73,65 @@
     .btn-green:hover {
       background-color: #2fa87a;
     }
+
+    .resend-btn {
+      background: transparent;
+      color: #34d399;
+      border: 1px solid #34d399;
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 12px;
+      transition: all 0.3s ease;
+    }
+
+    .resend-btn:hover:not(:disabled) {
+      background-color: #34d399;
+      color: white;
+    }
+
+    .resend-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      color: #6b7280;
+      border-color: #6b7280;
+    }
+
+    .back-link {
+      display: block;
+      margin-top: 20px;
+      text-align: center;
+      color: #9ca3af;
+      text-decoration: none;
+      font-size: 14px;
+    }
+
+    .back-link:hover {
+      text-decoration: underline;
+      color: #34d399;
+    }
+
+    #timer {
+      color: #f59e0b;
+      font-weight: bold;
+    }
+
+    .form-step {
+      animation: fadeIn 0.5s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
   </style>
 </head>
 <body>
   <div class="signup-container">
     <div class="signup-title">Create Account</div>
-    <form id="signupForm">
+    
+    <!-- Registration Form -->
+    <form id="signupForm" style="display: block;">
       <label for="fullname">Full Name</label>
       <input type="text" id="fullname" name="fullname" placeholder="Enter your full name" required />
 
@@ -92,25 +145,69 @@
       <input type="password" id="password" name="password" placeholder="Create a password" required />
 
       <button type="submit" class="btn-green">Sign Up</button>
+      
+      <a href="homepage.html" class="back-link">← Back to Home</a>
     </form>
+
+    <!-- OTP Verification Form -->
+    <form id="otpForm" style="display: none;">
+      <div style="text-align: center; margin-bottom: 20px;">
+        <h3 style="color: #34d399; margin-bottom: 10px;">📧 Check Your Email</h3>
+        <p style="color: #9ca3af; font-size: 14px;">We've sent a 6-digit verification code to:</p>
+        <p id="verificationEmail" style="color: #34d399; font-weight: bold; margin: 10px 0;"></p>
+      </div>
+
+      <label for="otpCode">Verification Code</label>
+      <input type="text" id="otpCode" name="otpCode" placeholder="Enter 6-digit code" maxlength="6" required style="text-align: center; font-size: 18px; letter-spacing: 4px;" />
+      
+      <div style="text-align: center; margin-top: 15px;">
+        <p style="color: #9ca3af; font-size: 12px;">⏰ Code expires in <span id="timer">10:00</span></p>
+        <button type="button" id="resendBtn" class="resend-btn" onclick="resendOTP()" disabled>
+          Resend Code
+        </button>
+      </div>
+
+      <button type="submit" class="btn-green">Verify Email</button>
+      
+      <button type="button" onclick="goBackToSignup()" style="background: #6b7280; margin-top: 10px;" class="btn-green">
+        ← Back to Sign Up
+      </button>
+      
+      <a href="homepage.html" class="back-link">← Back to Home</a>
+    </form>
+
+    <!-- Success Message -->
+    <div id="successMessage" style="display: none; text-align: center;">
+      <div style="color: #34d399; font-size: 48px; margin-bottom: 20px;">✅</div>
+      <h3 style="color: #34d399; margin-bottom: 10px;">Account Created Successfully!</h3>
+      <p style="color: #9ca3af; margin-bottom: 30px;">Your email has been verified. You can now log in to your account.</p>
+      <button onclick="window.location.href='Login.html'" class="btn-green">
+        Go to Login
+      </button>
+      
+      <a href="homepage.html" class="back-link">← Back to Home</a>
+    </div>
   </div>
 
   <script>
+    let currentUserEmail = '';
+    let countdownTimer = null;
+
     document.getElementById('signupForm').addEventListener('submit', function(event) {
-      event.preventDefault();  // Prevent form submission
+      event.preventDefault();
 
       const name = document.getElementById('fullname').value;
       const employeeId = document.getElementById('employeeId').value;
       const email = document.getElementById('email').value;
       const password = document.getElementById('password').value;
 
-      // Send employeeId as employee_no (backend expects this key)
+      // Send registration request
       fetch('/api/users/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name,
-          employee_no: employeeId,  // ✅ correctly mapped key
+          employee_no: employeeId,
           email,
           password
         })
@@ -118,8 +215,10 @@
       .then(res => res.json())
       .then(data => {
         if (data.msg) {
-          alert('Registered successfully!');
-          window.location.href = 'login.html';
+          // Success: Show OTP form
+          currentUserEmail = email;
+          showOTPForm(email);
+          startTimer();
         } else {
           alert(data.errors?.[0]?.msg || 'Registration failed.');
         }
@@ -128,6 +227,126 @@
         console.error('Registration failed:', err);
         alert('Something went wrong. Please try again.');
       });
+    });
+
+    document.getElementById('otpForm').addEventListener('submit', function(event) {
+      event.preventDefault();
+
+      const otpCode = document.getElementById('otpCode').value;
+
+      fetch('/api/users/verify-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: currentUserEmail,
+          otp: otpCode
+        })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.verified) {
+          // Success: Show success message
+          clearInterval(countdownTimer);
+          showSuccessMessage();
+        } else {
+          alert(data.errors?.[0]?.msg || 'OTP verification failed.');
+        }
+      })
+      .catch(err => {
+        console.error('OTP verification failed:', err);
+        alert('Something went wrong. Please try again.');
+      });
+    });
+
+    function showOTPForm(email) {
+      document.getElementById('signupForm').style.display = 'none';
+      document.getElementById('otpForm').style.display = 'block';
+      document.getElementById('otpForm').classList.add('form-step');
+      document.getElementById('verificationEmail').textContent = email;
+      document.getElementById('otpCode').focus();
+    }
+
+    function showSuccessMessage() {
+      document.getElementById('otpForm').style.display = 'none';
+      document.getElementById('successMessage').style.display = 'block';
+      document.getElementById('successMessage').classList.add('form-step');
+    }
+
+    function goBackToSignup() {
+      document.getElementById('otpForm').style.display = 'none';
+      document.getElementById('signupForm').style.display = 'block';
+      document.getElementById('signupForm').classList.add('form-step');
+      currentUserEmail = '';
+      clearInterval(countdownTimer);
+    }
+
+    function resendOTP() {
+      if (!currentUserEmail) return;
+
+      fetch('/api/users/resend-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: currentUserEmail
+        })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.msg) {
+          alert('New verification code sent to your email!');
+          startTimer(); // Restart timer
+          document.getElementById('otpCode').value = '';
+          document.getElementById('otpCode').focus();
+        } else {
+          alert(data.errors?.[0]?.msg || 'Failed to resend OTP.');
+        }
+      })
+      .catch(err => {
+        console.error('Resend OTP failed:', err);
+        alert('Something went wrong. Please try again.');
+      });
+    }
+
+    function startTimer() {
+      let timeLeft = 600; // 10 minutes in seconds
+      const timerElement = document.getElementById('timer');
+      const resendBtn = document.getElementById('resendBtn');
+      
+      resendBtn.disabled = true;
+      
+      countdownTimer = setInterval(() => {
+        const minutes = Math.floor(timeLeft / 60);
+        const seconds = timeLeft % 60;
+        
+        timerElement.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+        
+        if (timeLeft <= 0) {
+          clearInterval(countdownTimer);
+          timerElement.textContent = 'Expired';
+          timerElement.style.color = '#ef4444';
+          resendBtn.disabled = false;
+          resendBtn.textContent = 'Resend Code';
+        } else if (timeLeft <= 60) {
+          resendBtn.disabled = false;
+          resendBtn.textContent = 'Resend Code';
+        }
+        
+        timeLeft--;
+      }, 1000);
+    }
+
+    // Auto-format OTP input
+    document.getElementById('otpCode').addEventListener('input', function(e) {
+      let value = e.target.value.replace(/\D/g, ''); // Remove non-digits
+      if (value.length > 6) value = value.slice(0, 6);
+      e.target.value = value;
+      
+      // Auto-submit when 6 digits are entered
+      if (value.length === 6) {
+        setTimeout(() => {
+          document.getElementById('otpForm').dispatchEvent(new Event('submit', { bubbles: true }));
+        }, 500);
+      }
     });
   </script>
 </body>

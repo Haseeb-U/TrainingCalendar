@@ -175,6 +175,51 @@ const getEmailTemplate = (type, data) => {
   `;
 
   switch (type) {
+    case 'otp_verification':
+      return baseTemplate(
+        `Email Verification Required - Training Calendar System`,
+        `
+          <div class="header">
+            <div class="icon">🔐</div>
+            <h1>Verify Your Email Address</h1>
+          </div>
+          <div class="content">
+            <h2>Hello ${data.name}! 👋</h2>
+            <p style="font-size: 16px; margin-bottom: 20px;">Thank you for signing up! To complete your registration and secure your account, please verify your email address using the OTP below:</p>
+            
+            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; border-radius: 15px; margin: 30px 0;">
+              <h2 style="color: white; margin: 0 0 10px 0; font-size: 18px;">Your Verification Code</h2>
+              <div style="background: white; padding: 20px; border-radius: 10px; display: inline-block; margin: 10px;">
+                <span style="font-size: 32px; font-weight: bold; color: #4a90e2; letter-spacing: 8px; font-family: 'Courier New', monospace;">${data.otp}</span>
+              </div>
+              <p style="color: white; margin: 15px 0 0 0; font-size: 14px;">⏰ This code expires in 10 minutes</p>
+            </div>
+
+            <div style="background: #fff3cd; border-left: 4px solid #ffc107; padding: 20px; margin: 20px 0; border-radius: 0 8px 8px 0;">
+              <h3 style="margin-top: 0; color: #856404;">⚡ Quick Steps:</h3>
+              <ol style="color: #2d3748; margin: 10px 0;">
+                <li>Return to the signup page</li>
+                <li>Enter the 6-digit code above</li>
+                <li>Click "Verify Email" to complete registration</li>
+              </ol>
+            </div>
+
+            <div style="background: #f8d7da; border-left: 4px solid #dc3545; padding: 15px; margin: 20px 0; border-radius: 0 8px 8px 0;">
+              <p style="margin: 0; color: #721c24; font-size: 14px;">
+                <strong>🔒 Security Note:</strong> If you didn't request this verification, please ignore this email. The code will expire automatically.
+              </p>
+            </div>
+
+          </div>
+          <div class="footer">
+            <p><strong>Training Calendar System</strong></p>
+            <p>📧 Email Verification Service</p>
+            <p style="font-size: 12px; color: #a0aec0;">🔒 This is an automated security message</p>
+          </div>
+        `,
+        '#667eea'
+      );
+
     case 'training_reminder':
       return baseTemplate(
         `Training Reminder – ${data.name}`,
@@ -463,11 +508,18 @@ const sendTrainingDataShareEmail = async (recipient, reportData, csvAttachment) 
   return sendTrainingNotification(recipient, subject, htmlContent, csvAttachment);
 };
 
+const sendOTPVerificationEmail = async (userData) => {
+  const subject = `🔐 Email Verification Code - Training Calendar System`;
+  const htmlContent = getEmailTemplate('otp_verification', userData);
+  return sendTrainingNotification(userData.email, subject, htmlContent);
+};
+
 module.exports = { 
   sendTrainingNotification, 
   getEmailTemplate,
   sendWelcomeEmail,
   sendTrainingReminderEmail,
   sendNewTrainingNotificationEmail,
-  sendTrainingDataShareEmail
+  sendTrainingDataShareEmail,
+  sendOTPVerificationEmail
 };

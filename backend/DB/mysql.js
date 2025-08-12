@@ -35,9 +35,23 @@ async function initDatabase() {
     email VARCHAR(100) UNIQUE NOT NULL,
     employee_no INT UNIQUE NOT NULL,
     password VARCHAR(255) NOT NULL,
+    is_verified BOOLEAN DEFAULT FALSE,
+    otp VARCHAR(6),
+    otp_expires_at DATETIME,
     date DATE DEFAULT (CURRENT_DATE)
 );
   `);
+
+  // Add new columns to existing users table if they don't exist
+  try {
+    await db.query(`ALTER TABLE users ADD COLUMN is_verified BOOLEAN DEFAULT FALSE`);
+    await db.query(`ALTER TABLE users ADD COLUMN otp VARCHAR(6)`);
+    await db.query(`ALTER TABLE users ADD COLUMN otp_expires_at DATETIME`);
+    console.log('✅ Added OTP verification columns to users table');
+  } catch (error) {
+    // Columns might already exist, ignore error
+    console.log('ℹ️ OTP verification columns already exist or could not be added');
+  }
 
   await db.query(`
     CREATE TABLE IF NOT EXISTS Trainings (
